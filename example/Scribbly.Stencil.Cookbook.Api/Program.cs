@@ -24,7 +24,9 @@ app.MapDefaultEndpoints();
 
 // app.MapLunchGroup();
 
-app.MapLunchGroupGetLunchMenuEndpoint();
+app
+    .MapLunchGroupGetLunchMenuEndpoint()
+    .MapLunchGroupPostLunchMenuEndpoint();
 
 app.Run();
 

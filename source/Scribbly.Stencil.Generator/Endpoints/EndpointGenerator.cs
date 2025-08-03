@@ -19,11 +19,6 @@ public class EndpointGenerator : IIncrementalGenerator
             .WithComparer(TargetMethodCaptureContextComparer.Instance);
 
         context.RegisterSourceOutput(provider, EndpointHandleExecution.Execute);
-        
-        // context.ReportDiagnostic(Diagnostic.Create(
-        //     new DiagnosticDescriptor("SCRBLY001", "Debug", "Found method: {0}", "SourceGen", DiagnosticSeverity.Info, true),
-        //     methodDeclaration.GetLocation(),
-        //     methodSymbol.Name));
     }
 
     /// <summary>
@@ -63,22 +58,83 @@ public class EndpointGenerator : IIncrementalGenerator
         var getEndpointAttr = methodSymbol.GetAttributes()
             .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == GetEndpointAttribute.TypeFullName);
 
-        if (getEndpointAttr is null)
+        var postEndpointAttr = methodSymbol.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == PostEndpointAttribute.TypeFullName);
+
+        var putEndpointAttr = methodSymbol.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == PutEndpointAttribute.TypeFullName);
+
+        var deleteEndpointAttr = methodSymbol.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == DeleteEndpointAttribute.TypeFullName);
+
+        var capture = (getEndpointAttr, postEndpointAttr, putEndpointAttr, deleteEndpointAttr) switch
+        {
+            (null, null, null, null) => null,
+            (not null, null, null, null) => CaptureGetContext(classSymbol, methodSymbol, getEndpointAttr),
+            (null, not null, null, null) => CapturePostContext(classSymbol, methodSymbol, postEndpointAttr),
+            (null, null, not null, null) => CapturePutContext(classSymbol, methodSymbol, putEndpointAttr),
+            (null, null, null, not null) => CaptureDeleteContext(classSymbol, methodSymbol, deleteEndpointAttr),
+            _ => null
+        };
+        if (capture is null)
+        {
             return null;
+        }
+        
+        return (classSymbol, capture);
+    }
 
-        // Extract attribute arguments safely
-        string httpRoute = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString() ?? string.Empty;
-        string methodName = methodSymbol.Name;
+    private static TargetMethodCaptureContext CaptureGetContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
+    {
+        var httpRoute = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString() ?? string.Empty;
+        var methodName = methodSymbol.Name;
 
-        return (
-            classSymbol,
-            new TargetMethodCaptureContext(
+        return new TargetMethodCaptureContext(
                 classSymbol.ContainingNamespace.ToDisplayString(),
                 classSymbol.Name,
                 methodName,
-                "Get", // Or infer from attribute type
+                "Get",
                 httpRoute,
-                false));
+                false);
+    }
+    private static TargetMethodCaptureContext CapturePostContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
+    {
+        var httpRoute = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString() ?? string.Empty;
+        var methodName = methodSymbol.Name;
+
+        return new TargetMethodCaptureContext(
+                classSymbol.ContainingNamespace.ToDisplayString(),
+                classSymbol.Name,
+                methodName,
+                "Post",
+                httpRoute,
+                false);
+    }
+    private static TargetMethodCaptureContext CapturePutContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
+    {
+        var httpRoute = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString() ?? string.Empty;
+        var methodName = methodSymbol.Name;
+
+        return new TargetMethodCaptureContext(
+                classSymbol.ContainingNamespace.ToDisplayString(),
+                classSymbol.Name,
+                methodName,
+                "Put",
+                httpRoute,
+                false);
+    }
+    private static TargetMethodCaptureContext CaptureDeleteContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
+    {
+        var httpRoute = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString() ?? string.Empty;
+        var methodName = methodSymbol.Name;
+
+        return new TargetMethodCaptureContext(
+                classSymbol.ContainingNamespace.ToDisplayString(),
+                classSymbol.Name,
+                methodName,
+                "Delete",
+                httpRoute,
+                false);
     }
 
     private static bool ValidateCandidateModifiers(ClassDeclarationSyntax? candidate)
