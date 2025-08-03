@@ -9,7 +9,7 @@ static partial class Group
 }
 
 [EndpointGroup("/lunch")]
-public static partial class LunchGroup
+public static partial class DinnerGroup
 {
 
     // ----------------------------------------> THE CODE USER WILL WRITE

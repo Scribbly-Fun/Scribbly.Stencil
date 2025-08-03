@@ -26,26 +26,58 @@ A framework for organizing and generating minimal API endpoints.
 
 Below is a brief snip of code to get you started before reading more.
 
-1. Add a reference to the `Scribbly.Stencil` package
+1. Add a reference to the `Scribbly.Stencil` package and annotate a method on a partial static class.
 
 ```csharp
-
+[EndpointGroup("/lunch")]
+public static partial class LunchGroup
+{
+    // Annotate any method signature with the VerbEndpoint attribute
+    [GetEndpoint("/{id}", "Get Lunch", "Fetches the current lunch for the provided restaurant ID.")]
+    private static IResult GetLunchMenu(HttpContext context, string id)
+    {
+        return Results.Ok(id);
+    }
+    
+    [PostEndpoint("/{id}", "Get Lunch", "Fetches the current lunch for the provided restaurant ID.")]
+    private static IResult PostLunchMenu(HttpContext context, string id, LunchItem request)
+    {
+        return Results.Ok(request);
+    }
+}
 ```
+*Scribbly.Stencil will generate a few things for you behind the Scenes*
 
-2. Create some handlers
+2. An HTTP Endpoint Registration Method
 
 ``` csharp
-
-```
-3. Create some groups
-
-```csharp
-
-
+public static IEndpointRouteBuilder MapDinnerGroupPostLunchMenuEndpoint(this IEndpointRouteBuilder builder)
+{
+    builder.MapPost("/{id}", PostLunchMenu);
+    return builder;
+}
 ```
 
-4. Map your application
+3. And an Endpoint Registry for All Endpoints Mapping endpoints to Groups
 
 ```csharp
+public static IEndpointRouteBuilder MapScribblyEndpoints(this IEndpointRouteBuilder builder)
+{
+    builder.MapLunchGroupGetLunchMenuEndpoint();
+    builder.MapLunchGroupPostLunchMenuEndpoint();
+    return builder;
+} 
 
+```
+
+4. Simply Map Your Application
+
+```csharp
+app.MapScribblyEndpoints();
+```
+
+*Optionally Add a Group or Route Prefix
+
+```csharp
+app.MapScribblyEndpoints("/api");
 ```
