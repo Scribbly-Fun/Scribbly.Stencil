@@ -17,10 +17,14 @@ namespace Scribbly.Stencil.Attributes
         private static void PostInitializationCallback(IncrementalGeneratorPostInitializationContext context)
         {
             context.AddSource(EndpointGroupAttribute.FileName, EndpointGroupAttribute.Value);
+            
+            context.AddSource(EndpointAttribute.FileName, EndpointAttribute.Value);
             context.AddSource(GetEndpointAttribute.FileName, GetEndpointAttribute.Value);
             context.AddSource(PostEndpointAttribute.FileName, PostEndpointAttribute.Value);
             context.AddSource(PutEndpointAttribute.FileName, PutEndpointAttribute.Value);
             context.AddSource(DeleteEndpointAttribute.FileName, DeleteEndpointAttribute.Value);
+            
+            context.AddSource(EndpointBuilderAttribute.FileName, EndpointBuilderAttribute.Value);
         }
     }
 }

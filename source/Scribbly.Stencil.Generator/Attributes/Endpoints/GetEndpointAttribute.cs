@@ -17,26 +17,15 @@ namespace {Global.Namespace}
     /// When applied to a partial static method the delegate will become a handler for an HTTP GET endpoint.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute(""{Global.Namespace}"", ""{Global.Version}"")]
-    [global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false)]
-    public sealed class {TypeName} : global::System.Attribute
+    [global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = false)]
+    public sealed class {TypeName} : global::{EndpointAttribute.TypeFullName}
     {{
-        /// <summary>
-        /// The route for the endpoint
-        /// </summary>
-        public string Route {{ get; private set; }}
-
-        /// <summary>
-        /// An endpoint name for the HTTP endpoint.
-        /// </summary>
-        public string? Name {{ get; private set; }}
-
         /// <summary>
         /// When applied to a partial static method the delegate will become a handler for an HTTP GET endpoint.
         /// </summary>
-        public {TypeName}(string route, string? name = null)
+        public {TypeName}(string route, string? name = null, string? description = null) 
+            :base(""Get"", route, name, description)
         {{
-            Route = route;
-            Name = name;
         }}
     }}
 }}

@@ -1,4 +1,5 @@
 
+using Scribbly.Stencil;
 using Scribbly.Stencil.Cookbook.ApiService;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +10,7 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddOpenApi();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 app.UseExceptionHandler();
 
@@ -19,6 +20,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapDefaultEndpoints();
+
+app.MapLunchGroup();
 
 app.Run();
 

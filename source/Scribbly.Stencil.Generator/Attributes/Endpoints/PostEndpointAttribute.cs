@@ -17,7 +17,7 @@ namespace {Global.Namespace}
     /// When applied to a partial static method the delegate will become a handler for an HTTP POST endpoint.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute(""{Global.Namespace}"", ""{Global.Version}"")]
-    [global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false)]
+    [global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = false)]
     public sealed class {TypeName} : global::System.Attribute
     {{
         /// <summary>
