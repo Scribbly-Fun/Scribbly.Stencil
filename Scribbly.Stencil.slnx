@@ -1,0 +1,27 @@
+<Solution>
+  <Folder Name="/.setup/">
+    <File Path=".github/PULL_REQUEST_TEMPLATE.md" />
+    <File Path=".github/workflows/dotnet-beta.yml" />
+    <File Path=".github/workflows/dotnet-release.yml" />
+    <File Path=".github/workflows/dotnet-test.yml" />
+    <File Path="Directory.Packages.props" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/example/">
+    <Project Path="example/Scribbly.Stencil.Cookbook.ApiService/Scribbly.Stencil.Cookbook.ApiService.csproj" />
+    <Project Path="example/Scribbly.Stencil.Cookbook.AppHost/Scribbly.Stencil.Cookbook.AppHost.csproj" />
+    <File Path="example/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/lib/">
+    <Project Path="source/Scribbly.Stencil/Scribbly.Stencil.csproj" />
+    <Project Path="source\Scribbly.Stencil.Generator\Scribbly.Stencil.Generator.csproj" Type="Classic C#" />
+    <File Path="source/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="example/Scribbly.Stencil.Cookbook.Tests/Scribbly.Stencil.Cookbook.Tests.csproj" />
+    <Project Path="tests/Scribbly.Stencil.IntegrationTests/Scribbly.Stencil.IntegrationTests.csproj" />
+    <Project Path="tests/Scribbly.Stencil.UnitTests/Scribbly.Stencil.UnitTests.csproj" />
+    <File Path="tests/Directory.Build.props" />
+  </Folder>
+</Solution>

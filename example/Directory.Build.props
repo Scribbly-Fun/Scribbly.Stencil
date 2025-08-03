@@ -1,0 +1,22 @@
+<Project>
+   <PropertyGroup>
+     <TargetFramework>net9.0</TargetFramework>
+     <LangVersion>latestmajor</LangVersion>
+     <IsPackable>false</IsPackable>
+     <ImplicitUsings>enable</ImplicitUsings>
+     <Nullable>enable</Nullable>
+     <PackageProjectUrl>https://github.com/Scribbly-Fun/Scribbly.Stencil</PackageProjectUrl>
+     <RepositoryUrl>https://github.com/Scribbly-Fun/Scribbly.Stencil</RepositoryUrl>
+     <PackageIcon>scribbly_logo.png</PackageIcon>
+     <PackageReadmeFile>README.md</PackageReadmeFile>
+     <PackageTags>Mediator;DDD;DomainDrivenDesign;CQRS</PackageTags>
+     <Company>Scribble LLC</Company>
+     <WarningsAsErrors>True</WarningsAsErrors>
+     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+   </PropertyGroup>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+</Project>

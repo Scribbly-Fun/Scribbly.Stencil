@@ -1,0 +1,35 @@
+<Project>
+   <PropertyGroup>
+     <RootNamespace>Scribbly.Stencil</RootNamespace>
+     <IsPackable>true</IsPackable>
+     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+     <LangVersion>latestmajor</LangVersion>
+     <ImplicitUsings>enable</ImplicitUsings>
+     <Nullable>enable</Nullable>
+     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+     <PackageProjectUrl>https://github.com/Scribbly-Fun/Scribbly.Stencil</PackageProjectUrl>
+     <RepositoryUrl>https://github.com/Scribbly-Fun/Scribbly.Stencil</RepositoryUrl>
+     <PackageIcon>scribbly_logo.png</PackageIcon>
+     <PackageReadmeFile>README.md</PackageReadmeFile>
+     <PackageTags>MinimalAPIs;Aspnet;Endpoints;</PackageTags>
+     <Company>Scribble LLC</Company>
+     <WarningsAsErrors>True</WarningsAsErrors>
+     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+   </PropertyGroup>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <None Include="..\..\docs\scribbly_logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+  
+</Project>
