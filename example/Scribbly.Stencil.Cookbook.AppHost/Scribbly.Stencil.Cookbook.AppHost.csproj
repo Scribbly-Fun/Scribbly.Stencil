@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Scribbly.Stencil.Cookbook.ApiService\Scribbly.Stencil.Cookbook.ApiService.csproj" />
+    <ProjectReference Include="..\Scribbly.Stencil.Cookbook.Api\Scribbly.Stencil.Cookbook.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

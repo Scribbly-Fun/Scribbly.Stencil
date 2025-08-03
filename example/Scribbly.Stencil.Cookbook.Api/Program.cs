@@ -1,6 +1,7 @@
 
 using Scribbly.Stencil;
 using Scribbly.Stencil.Cookbook.ApiService;
+using Scribbly.Stencil.Cookbook.ApiService.Endpoints.Lunch;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,9 @@ if (app.Environment.IsDevelopment())
 
 app.MapDefaultEndpoints();
 
-app.MapLunchGroup();
+// app.MapLunchGroup();
+
+app.MapLunchGroupGetLunchMenuEndpoint();
 
 app.Run();
 

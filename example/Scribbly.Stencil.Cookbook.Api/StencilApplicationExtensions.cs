@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Scribbly.Stencil.Cookbook.ApiService;
 
 namespace Scribbly.Stencil;
 
@@ -18,14 +19,15 @@ public static class StencilApplicationExtensions
     /// <returns>The route builder with mapped endpoints.</returns>
     public static IEndpointRouteBuilder MapStencilEndpoints(this IEndpointRouteBuilder builder, string? prefix = null)
     {
-        if (prefix is null)
-        {
-            return builder
-                .MapLunchGroup();
-        }
-        
-        return builder
-            .MapGroup(prefix)
-            .MapLunchGroup();
+        return builder;
+        // if (prefix is null)
+        // {
+        //     return builder
+        //         .MapLunchGroup();
+        // }
+        //
+        // return builder
+        //     .MapGroup(prefix)
+        //     .MapLunchGroup();
     }
 }
