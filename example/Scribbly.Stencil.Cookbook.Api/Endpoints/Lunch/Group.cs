@@ -14,7 +14,7 @@ public static partial class LunchGroup
 
     // ----------------------------------------> THE CODE USER WILL WRITE
     
-    [GetEndpoint("/{id}", "Get Lunch", "Fetches the current lunch for the provided restaurant ID.")]
+    [GetEndpoint("lunch/{id}")]
     private static IResult GetLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
@@ -23,12 +23,18 @@ public static partial class LunchGroup
     {
         builder
             .WithRequestTimeout(TimeSpan.FromSeconds(1))
-            .ProducesProblem(400);
+            .ProducesProblem(400).WithDisplayName("DISPLAY NAME");
     }
 
-    [PostEndpoint("/{id}", "Get Lunch", "Fetches the current lunch for the provided restaurant ID.")]
+    [PostEndpoint("lunch/{id}", "Create Lunch", "Creates a new Lunch Item")]
     private static IResult PostLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
+    }
+    
+    [PutEndpoint("lunchs/{id}", "Edit Lunch", "Edits a Lunch Item")]
+    private static object PutLunchMenu(HttpContext context, [FromRoute] string id)
+    {
+        return new { id = id };
     }
 }

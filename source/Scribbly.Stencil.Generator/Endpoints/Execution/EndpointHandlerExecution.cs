@@ -3,7 +3,7 @@ using Scribbly.Stencil.Endpoints.Context;
 
 namespace Scribbly.Stencil.Endpoints.Execution;
 
-public class EndpointHandlerExecution
+public static class EndpointHandlerExecution
 {
     /// <summary>
     /// Writes the captured information about the handle method as a Minimal API endpoint.
@@ -39,7 +39,9 @@ public static partial class {subject.TypeName}
         var endpoint = builder.Map{subject.HttpMethod}(""{subject.HttpRoute}"", {subject.MethodName});
 
         Configure{subject.MethodName}(endpoint);
-
+        
+{subject.AddApiDocumentation()}
+        
         return builder;
     }}
 
@@ -48,5 +50,25 @@ public static partial class {subject.TypeName}
 ";
         var handlerName = subject.Namespace is null ? $"{subject.TypeName}.{subject.MethodName}" : $"{subject.Namespace}.{subject.TypeName}.{subject.MethodName}";
         context.AddSource($"{handlerName}.g.cs", handlerCode);
+    }
+
+    private static string AddApiDocumentation(this TargetMethodCaptureContext subject)
+    {
+        return subject switch
+        {
+            { Name: not null, Description: null } => $"""
+                                                              endpoint.WithName("{subject.Name}");
+                                                      """,
+            { Name: null, Description: not null } => $"""
+                                                              endpoint.WithDescription("{subject.Description}");
+                                                      """,
+            { Name: not null, Description: not null } =>
+                $"""
+                         endpoint
+                             .WithName("{subject.Name}")
+                             .WithDescription("{subject.Description}");
+                 """,
+            _ => string.Empty
+        };
     }
 }

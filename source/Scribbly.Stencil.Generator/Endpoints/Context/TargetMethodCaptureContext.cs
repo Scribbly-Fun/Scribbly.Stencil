@@ -9,7 +9,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
     public string? HttpRoute { get; }
     public string? Name { get; }
     public string? Description { get; }
-
+    
     public TargetMethodCaptureContext(
         string? @namespace,
         string? typeName,
