@@ -1,8 +1,9 @@
-﻿namespace Scribbly.Stencil.Attributes.Endpoints;
+﻿#pragma warning disable CS9113
+namespace Scribbly.Stencil.Attributes.Endpoints;
 
 public static class EndpointAttributeData
 {
-    public class TypeInformation(string TypeName, string UsageName, string FullName);
+    public class TypeInformation(string typeName, string usageName, string fullName);
     
     public static Dictionary<string, TypeInformation> EndpointAttributes = new ()
     {

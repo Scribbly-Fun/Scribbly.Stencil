@@ -1,9 +1,10 @@
-﻿
+﻿// ReSharper disable SuggestVarOrType_Elsewhere
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Runtime.CompilerServices;
 using Scribbly.Stencil.Attributes.Endpoints;
+using Scribbly.Stencil.Endpoints.Execution;
 
 namespace Scribbly.Stencil.Endpoints;
 
@@ -12,13 +13,16 @@ public class EndpointGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        IncrementalValuesProvider<TargetMethodCaptureContext> provider = context.SyntaxProvider
+        IncrementalValuesProvider<TargetMethodCaptureContext> endpointProvider = context.SyntaxProvider
             .CreateSyntaxProvider(SyntacticPredicate, SemanticTransform)
             .Where(static (type) => type.HasValue)
             .Select(static (type, _) => TransformType(type!.Value))
             .WithComparer(TargetMethodCaptureContextComparer.Instance);
+        
+        var collectedEndpoints = endpointProvider.Collect();
 
-        context.RegisterSourceOutput(provider, EndpointHandleExecution.Execute);
+        context.RegisterSourceOutput(endpointProvider, EndpointHandlerExecution.Generate);
+        context.RegisterSourceOutput(collectedEndpoints, EndpointRegistrarExecution.Generate);
     }
 
     /// <summary>
