@@ -19,7 +19,13 @@ public static partial class LunchGroup
     {
         return Results.Ok(id);
     }
-    
+    static partial void ConfigureGetLunchMenu(IEndpointConventionBuilder builder)
+    {
+        builder
+            .WithRequestTimeout(TimeSpan.FromSeconds(1))
+            .ProducesProblem(400);
+    }
+
     [PostEndpoint("/{id}", "Get Lunch", "Fetches the current lunch for the provided restaurant ID.")]
     private static IResult PostLunchMenu(HttpContext context, [FromRoute] string id)
     {

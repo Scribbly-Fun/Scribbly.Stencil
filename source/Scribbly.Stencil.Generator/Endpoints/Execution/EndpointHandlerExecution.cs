@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Scribbly.Stencil.Endpoints.Context;
 
 namespace Scribbly.Stencil.Endpoints.Execution;
 
@@ -30,7 +31,19 @@ using Microsoft.AspNetCore.Routing;
 
 public static partial class {subject.TypeName}
 {{
-{subject.CreateEndpointMappingMethod()}
+    /// <summary>
+    /// Maps the method {subject.MethodName} to an Endpoint group with the Route {subject.HttpMethod?.ToUpper()} {subject.HttpRoute}.
+    /// </summary>
+    public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{subject.TypeName}{subject.MethodName}Endpoint(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
+    {{
+        var endpoint = builder.Map{subject.HttpMethod}(""{subject.HttpRoute}"", {subject.MethodName});
+
+        Configure{subject.MethodName}(endpoint);
+
+        return builder;
+    }}
+
+    static partial void Configure{subject.MethodName}(IEndpointConventionBuilder builder);
 }}
 ";
         var handlerName = subject.Namespace is null ? $"{subject.TypeName}.{subject.MethodName}" : $"{subject.Namespace}.{subject.TypeName}.{subject.MethodName}";

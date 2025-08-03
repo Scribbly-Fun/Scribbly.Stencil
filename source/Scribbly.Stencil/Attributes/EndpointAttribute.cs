@@ -29,7 +29,7 @@ public abstract class EndpointAttribute : Attribute
     /// <summary>
     /// Constructs a new instance of the endpoint attribute.
     /// </summary>
-    public EndpointAttribute(string method, string route, string? name = null, string? description = null)
+    protected EndpointAttribute(string method, string route, string? name = null, string? description = null)
     {
         Method = method;
         Route = route;

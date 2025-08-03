@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Scribbly.Stencil.Attributes.Endpoints;
+using Scribbly.Stencil.Endpoints.Context;
 using Scribbly.Stencil.Endpoints.Execution;
 
 namespace Scribbly.Stencil.Endpoints;
@@ -87,60 +88,7 @@ public class EndpointGenerator : IIncrementalGenerator
         
         return (classSymbol, capture);
     }
-
-    private static TargetMethodCaptureContext CaptureGetContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
-    {
-        var httpRoute = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString() ?? string.Empty;
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-                classSymbol.ContainingNamespace.ToDisplayString(),
-                classSymbol.Name,
-                methodName,
-                "Get",
-                httpRoute,
-                false);
-    }
-    private static TargetMethodCaptureContext CapturePostContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
-    {
-        var httpRoute = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString() ?? string.Empty;
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-                classSymbol.ContainingNamespace.ToDisplayString(),
-                classSymbol.Name,
-                methodName,
-                "Post",
-                httpRoute,
-                false);
-    }
-    private static TargetMethodCaptureContext CapturePutContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
-    {
-        var httpRoute = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString() ?? string.Empty;
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-                classSymbol.ContainingNamespace.ToDisplayString(),
-                classSymbol.Name,
-                methodName,
-                "Put",
-                httpRoute,
-                false);
-    }
-    private static TargetMethodCaptureContext CaptureDeleteContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
-    {
-        var httpRoute = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString() ?? string.Empty;
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-                classSymbol.ContainingNamespace.ToDisplayString(),
-                classSymbol.Name,
-                methodName,
-                "Delete",
-                httpRoute,
-                false);
-    }
-
+    
     private static bool ValidateCandidateModifiers(ClassDeclarationSyntax? candidate)
     {
         if (candidate == null)
@@ -153,6 +101,74 @@ public class EndpointGenerator : IIncrementalGenerator
             return false;
 
         return true;
+    }
+    
+    private static (string? route, string? name, string? description) GetAttributeProperties(AttributeData getEndpointAttr)
+    {
+        return (
+            getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString(),
+            getEndpointAttr.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString(),
+            getEndpointAttr.ConstructorArguments.ElementAtOrDefault(2).Value?.ToString());
+    }
+    
+    private static TargetMethodCaptureContext CapturePostContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
+    {
+        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
+        var methodName = methodSymbol.Name;
+
+        return new TargetMethodCaptureContext(
+                classSymbol.ContainingNamespace.ToDisplayString(),
+                classSymbol.Name,
+                methodName,
+                "Post",
+                httpRoute,
+                name, 
+                description);
+    }
+    
+    private static TargetMethodCaptureContext CapturePutContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
+    {
+        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
+        var methodName = methodSymbol.Name;
+
+        return new TargetMethodCaptureContext(
+                classSymbol.ContainingNamespace.ToDisplayString(),
+                classSymbol.Name,
+                methodName,
+                "Put",
+                httpRoute,
+                name, 
+                description);
+    }
+    
+    private static TargetMethodCaptureContext CaptureDeleteContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
+    {
+        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
+        var methodName = methodSymbol.Name;
+
+        return new TargetMethodCaptureContext(
+                classSymbol.ContainingNamespace.ToDisplayString(),
+                classSymbol.Name,
+                methodName,
+                "Delete",
+                httpRoute,
+                name, 
+                description);
+    }
+    
+    private static TargetMethodCaptureContext CaptureGetContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
+    {
+        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
+        var methodName = methodSymbol.Name;
+
+        return new TargetMethodCaptureContext(
+            classSymbol.ContainingNamespace.ToDisplayString(),
+            classSymbol.Name,
+            methodName,
+            "Get",
+            httpRoute,
+            name, 
+            description);
     }
 
     /// <summary>
@@ -174,6 +190,7 @@ public class EndpointGenerator : IIncrementalGenerator
             type.metadata.MethodName,
             type.metadata.HttpMethod,
             type.metadata.HttpRoute,
-            type.metadata.HasConfigurationHandler);
+            type.metadata.Name,
+            type.metadata.Description);
     }
 }

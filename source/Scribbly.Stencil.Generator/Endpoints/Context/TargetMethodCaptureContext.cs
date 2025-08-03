@@ -1,31 +1,31 @@
-﻿namespace Scribbly.Stencil.Endpoints;
+﻿namespace Scribbly.Stencil.Endpoints.Context;
 
 public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext>, IEquatable<TargetMethodCaptureContext>
 {
     public string? Namespace { get; }
     public string? TypeName { get; }
     public string? MethodName { get; }
-    
     public string? HttpMethod { get; }
-    
     public string? HttpRoute { get; }
-
-    public bool HasConfigurationHandler { get; set; }
+    public string? Name { get; }
+    public string? Description { get; }
 
     public TargetMethodCaptureContext(
         string? @namespace,
-        string? name,
+        string? typeName,
         string? methodName,
         string? httpMethod,
         string? httpRoute,
-        bool hasConfigurationHandler)
+        string? name,
+        string? description)
     {
         Namespace = @namespace;
-        TypeName = name;
+        TypeName = typeName;
         MethodName = methodName;
         HttpMethod = httpMethod;
         HttpRoute = httpRoute;
-        HasConfigurationHandler = hasConfigurationHandler;
+        Name = name;
+        Description = description;
     }
 
     public int CompareTo(TargetMethodCaptureContext? other)
@@ -37,7 +37,8 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         if (other.MethodName != MethodName) return -1;
         if (other.HttpMethod != HttpMethod) return -1;
         if (other.HttpRoute != HttpRoute) return -1;
-        if (other.HasConfigurationHandler != HasConfigurationHandler) return -1;
+        if (other.Name != Name) return -1;
+        if (other.Description != Description) return -1;
         
         return 0;
     }
@@ -51,7 +52,8 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         if (other.MethodName != MethodName) return false;
         if (other.HttpMethod != HttpMethod) return false;
         if (other.HttpRoute != HttpRoute) return false;
-        if (other.HasConfigurationHandler != HasConfigurationHandler) return false;
+        if (other.Name != Name) return false;
+        if (other.Description != Description) return false;
        
         return true;
     }
@@ -78,6 +80,11 @@ internal class TargetMethodCaptureContextComparer : IEqualityComparer<TargetMeth
         {
             var hashCode = obj?.Namespace != null ? obj.Namespace.GetHashCode() : 0;
             hashCode = hashCode * 397 ^ (obj?.TypeName != null ? obj.TypeName.GetHashCode() : 0);
+            hashCode = hashCode * 397 ^ (obj?.MethodName != null ? obj.MethodName.GetHashCode() : 0);
+            hashCode = hashCode * 397 ^ (obj?.HttpMethod != null ? obj.HttpMethod.GetHashCode() : 0);
+            hashCode = hashCode * 397 ^ (obj?.HttpRoute != null ? obj.HttpRoute.GetHashCode() : 0);
+            hashCode = hashCode * 397 ^ (obj?.Name != null ? obj.Name.GetHashCode() : 0);
+            hashCode = hashCode * 397 ^ (obj?.Description != null ? obj.Description.GetHashCode() : 0);
             
             return hashCode;
         }
