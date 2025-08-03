@@ -4,10 +4,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Scribbly.Stencil.Attributes.Endpoints;
+using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Endpoints.Context;
 using Scribbly.Stencil.Endpoints.Execution;
+using Scribbly.Stencil.Groups;
 
-namespace Scribbly.Stencil.Endpoints;
+namespace Scribbly.Stencil;
 
 [Generator(LanguageNames.CSharp)]
 public class EndpointGenerator : IIncrementalGenerator
@@ -15,22 +17,28 @@ public class EndpointGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         IncrementalValuesProvider<TargetMethodCaptureContext> endpointProvider = context.SyntaxProvider
-            .CreateSyntaxProvider(SyntacticPredicate, SemanticTransform)
+            .CreateSyntaxProvider(HandlerSyntacticPredicate, HandlerSemanticTransform)
             .Where(static (type) => type.HasValue)
-            .Select(static (type, _) => TransformType(type!.Value))
+            .Select(static (type, _) => TransformHandlerType(type!.Value))
             .WithComparer(TargetMethodCaptureContextComparer.Instance);
         
+        IncrementalValuesProvider<TargetGroupCaptureContext> routeGroupProvider = context.SyntaxProvider
+            .CreateSyntaxProvider(GroupSyntacticPredicate, GroupSemanticTransform)
+            .Where(static (type) => type.HasValue)
+            .Select(static (type, _) => TransformGroupType(type!.Value))
+            .WithComparer(TargetGroupCaptureContextComparer.Instance);
+        
+        // TODO: Pass the collected endpoints and collected groups to a single generator that emits the mapped together tree.
         var collectedEndpoints = endpointProvider.Collect();
+        var collectedGroups = routeGroupProvider.Collect();
 
         context.RegisterSourceOutput(endpointProvider, EndpointHandlerExecution.Generate);
         context.RegisterSourceOutput(collectedEndpoints, EndpointRegistrarExecution.Generate);
+        
+        context.RegisterSourceOutput(collectedGroups, GroupRegistrarExecution.Generate);
     }
-
-    /// <summary>
-    /// Check if the declaration is a Driver Metadata Attribute.
-    /// If So, Proceed to the Next Evaluation.
-    /// </summary>
-    private static bool SyntacticPredicate(SyntaxNode node, CancellationToken cancellation)
+    
+    private static bool HandlerSyntacticPredicate(SyntaxNode node, CancellationToken cancellation)
     {
         if (node is not MethodDeclarationSyntax method)
             return false;
@@ -43,8 +51,18 @@ public class EndpointGenerator : IIncrementalGenerator
                 attr.Name.ToString().Contains(PutEndpointAttribute.UsageName) ||
                 attr.Name.ToString().Contains(DeleteEndpointAttribute.UsageName));
     }
+    
+    private static bool GroupSyntacticPredicate(SyntaxNode node, CancellationToken cancellation)
+    {
+        if (node is not ClassDeclarationSyntax classDeclaration)
+            return false;
+        
+        return classDeclaration.AttributeLists
+            .SelectMany(list => list.Attributes)
+            .Any(attr => attr.Name.ToString().Contains(EndpointGroupAttribute.UsageName));
+    }
 
-    private static (INamedTypeSymbol symbol, TargetMethodCaptureContext handler)? SemanticTransform(GeneratorSyntaxContext context, CancellationToken cancellation)
+    private static (INamedTypeSymbol symbol, TargetMethodCaptureContext handler)? HandlerSemanticTransform(GeneratorSyntaxContext context, CancellationToken cancellation)
     {
         var methodDeclaration = (MethodDeclarationSyntax)context.Node;
         var methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDeclaration);
@@ -53,7 +71,7 @@ public class EndpointGenerator : IIncrementalGenerator
             return null;
 
         var classDeclaration = Extensions.SyntaxNodeExtensions.GetParent<ClassDeclarationSyntax>(methodDeclaration);
-        if (!ValidateCandidateModifiers(classDeclaration))
+        if (!ValidateHandlerCandidateModifiers(classDeclaration))
             return null;
 
         var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
@@ -89,7 +107,56 @@ public class EndpointGenerator : IIncrementalGenerator
         return (classSymbol, capture);
     }
     
-    private static bool ValidateCandidateModifiers(ClassDeclarationSyntax? candidate)
+    private static (INamedTypeSymbol symbol, TargetGroupCaptureContext handler)? GroupSemanticTransform(GeneratorSyntaxContext context, CancellationToken cancellation)
+    {
+        var classDeclaration = (ClassDeclarationSyntax)context.Node;
+        if (!ValidateGroupCandidateModifiers(classDeclaration))
+            return null;
+        
+        var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
+        if (classSymbol is null)
+            return null;
+
+        var getEndpointAttr = classSymbol.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == EndpointGroupAttribute.TypeFullName);
+        
+        if (getEndpointAttr is null)
+        {
+            return null;
+        }
+
+        var prefix = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString();
+        var parent = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString();
+        var tag = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(2).Value?.ToString();
+
+        if (prefix is null)
+        {
+            return null;
+        }
+        
+        return (classSymbol, new TargetGroupCaptureContext(
+            classSymbol.ContainingNamespace.ToDisplayString(),
+            classSymbol.Name,
+            prefix,
+            tag,
+            parent));
+    }
+    
+    private static bool ValidateHandlerCandidateModifiers(ClassDeclarationSyntax? candidate)
+    {
+        if (candidate == null)
+            return false;
+
+        if (!candidate.Modifiers.Any(SyntaxKind.PartialKeyword))
+            return false;
+
+        if (!candidate.Modifiers.Any(SyntaxKind.StaticKeyword))
+            return false;
+
+        return true;
+    }
+    
+    private static bool ValidateGroupCandidateModifiers(ClassDeclarationSyntax? candidate)
     {
         if (candidate == null)
             return false;
@@ -174,7 +241,7 @@ public class EndpointGenerator : IIncrementalGenerator
     /// <summary>
     /// Creates the partial class capture from the provided type, method, and args
     /// </summary>
-    private static TargetMethodCaptureContext TransformType((
+    private static TargetMethodCaptureContext TransformHandlerType((
         INamedTypeSymbol symbol,
         TargetMethodCaptureContext metadata) type)
     {
@@ -192,5 +259,26 @@ public class EndpointGenerator : IIncrementalGenerator
             type.metadata.HttpRoute,
             type.metadata.Name,
             type.metadata.Description);
+    }
+    
+    /// <summary>
+    /// Creates the partial class capture from the provided type, method, and args
+    /// </summary>
+    private static TargetGroupCaptureContext TransformGroupType((
+        INamedTypeSymbol symbol,
+        TargetGroupCaptureContext metadata) type)
+    {
+        var @namespace = type.symbol.ContainingNamespace.IsGlobalNamespace
+            ? null
+            : type.symbol.ContainingNamespace.ToDisplayString();
+
+        var name = type.symbol.Name;
+
+        return new TargetGroupCaptureContext(
+            @namespace,
+            name,
+            type.metadata.RoutePrefix,
+            type.metadata.Tag,
+            type.metadata.Parent);
     }
 }
