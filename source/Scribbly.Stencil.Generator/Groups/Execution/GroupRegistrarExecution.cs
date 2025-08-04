@@ -8,132 +8,6 @@ namespace Scribbly.Stencil.Groups;
 
 public class GroupRegistrarExecution
 {
-    private class GroupItem
-    {
-        public string? GroupName { get; set; }
-        public TargetGroupCaptureContext? Context { get; set; }
-
-        public List<GroupItem> Children { get; set; } = [];
-
-        public bool IsParent => Children.Any();
-        public GroupItem(string groupName)
-        {
-            GroupName = groupName;
-        }
-        
-        public GroupItem(string groupName, TargetGroupCaptureContext? context)
-        {
-            GroupName = groupName;
-            Context = context;
-        }
-        
-        public GroupItem(string groupName, TargetGroupCaptureContext context, List<GroupItem> children)
-        {
-            GroupName = groupName;
-            Context = context;
-            Children = children;
-        }
-        
-    }
-    
-    private static GroupItem GetOrCreateNode(ConcurrentDictionary<string, GroupItem> map, string id, TargetGroupCaptureContext? context)
-    {
-        return map.AddOrUpdate(id,
-            (key) => new GroupItem(key, context),
-            (k, v) =>
-            {
-                if (context is null)
-                {
-                    return v;
-                }
-                return new GroupItem(k, context);
-            });
-    }
-    
-    // private static List<GroupItem> CreateTree(ImmutableArray<TargetGroupCaptureContext> groups)
-    // {
-    //     var map = new ConcurrentDictionary<string, GroupItem>();
-    //
-    //     foreach (var group in groups)
-    //     {
-    //         var key = $"{group.Namespace}.{group.TypeName}";
-    //
-    //         if (group.MemberOf is null)
-    //         {
-    //             GetOrCreateNode(map, key, group);
-    //         }
-    //         else
-    //         {
-    //             var parent = GetOrCreateNode(map, group.MemberOf, null);
-    //             var child = GetOrCreateNode(map, key, group);
-    //             parent.Children.Add(child);
-    //         }
-    //     }
-    //
-    //     // Return only root nodes (not in childKeys)
-    //     var roots = map
-    //         .Select(kvp => kvp.Value)
-    //         .ToList();
-    //
-    //     return roots;
-    // }
-    //
-    // private static List<GroupItem> CreateTree(ImmutableArray<TargetGroupCaptureContext> groups)
-    // {
-    //     var map = new ConcurrentDictionary<string, GroupItem>();
-    //     var childKeys = new HashSet<string>();
-    //
-    //     foreach (var group in groups)
-    //     {
-    //         var key = $"{group.Namespace}.{group.TypeName}";
-    //
-    //         if (group.MemberOf is null)
-    //         {
-    //             GetOrCreateNode(map, key, group);
-    //         }
-    //         else
-    //         {
-    //             var parent = GetOrCreateNode(map, group.MemberOf, null);
-    //             var child = GetOrCreateNode(map, key, group);
-    //             parent.Children.Add(child);
-    //             childKeys.Add(key);
-    //         }
-    //     }
-    //
-    //     // Only return nodes that are not children
-    //     var roots = map
-    //         .Where(kvp => !childKeys.Contains(kvp.Key))
-    //         .Select(kvp => kvp.Value)
-    //         .ToList();
-    //
-    //     return roots;
-    // }
-    //
-    private static List<GroupItem> CreateTree(Dictionary<string, GroupItem> map)
-    {
-        var childKeys = new HashSet<string>();
-
-        foreach (var kvp in map)
-        {
-            var group = kvp.Value;
-
-            if (!string.IsNullOrEmpty(group.Context?.MemberOf))
-            {
-                if (map.TryGetValue(group.Context.MemberOf, out var parent))
-                {
-                    parent.Children.Add(group);
-                    childKeys.Add(group.GroupName);
-                }
-            }
-        }
-
-        // Return only root nodes
-        return map
-            .Where(kvp => !childKeys.Contains(kvp.Key))
-            .Select(kvp => kvp.Value)
-            .ToList();
-    }
-    
     public static void Generate(SourceProductionContext context, (ImmutableArray<TargetMethodCaptureContext> Endpoints, ImmutableArray<TargetGroupCaptureContext> Groups) tree)
     {
         var (endpoints, groups) = tree;
@@ -141,11 +15,9 @@ public class GroupRegistrarExecution
         var groupMap = groups.ToDictionary(
             g => $"{g.Namespace}.{g.TypeName}",
             v => new GroupItem($"{v.Namespace}.{v.TypeName}", v));
+        
         var groupDictionary = CreateTree(groupMap);
         
-        // var groupMap = groups.ToDictionary(g => g.GroupName);
-        // var tree = CreateTree(groupMap);
-        //
         if (groups.IsDefaultOrEmpty)
             return;
 
@@ -166,18 +38,15 @@ public class GroupRegistrarExecution
                                          public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapScribblyApp(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder app)
                                          {                            
                                      """);
-
-        // if (groupDictionary is not null)
-        // {
-            sb.AppendLine();
-            DebugTree(sb, groupDictionary, true);
-            
-            foreach (var root in groupDictionary)
-            {
-                EmitGroup(sb, root, endpoints, parentBuilderName: "app");
-            }
-        // }
         
+        sb.AppendLine();
+        DebugTree(sb, groupDictionary, false);
+        
+        foreach (var root in groupDictionary)
+        {
+            EmitGroup(sb, root, endpoints, parentBuilderName: "app");
+        }
+
         sb.AppendLine("""
                               return app;
                           }
@@ -185,26 +54,29 @@ public class GroupRegistrarExecution
                       """);
         context.AddSource($"Registrar.Scribbly.Stencil.GroupRegistry.g.cs", sb.ToString());
     }
-
-
-    private static string CreateGroupName(TargetGroupCaptureContext? context)
-    {
-        return $"{context?.Namespace}_{context?.TypeName}".Replace(".", "_").ToLower();
-    }
     
-    private static string GroupUsingStatements(ImmutableArray<TargetGroupCaptureContext> groups, ImmutableArray<TargetMethodCaptureContext> endpoints)
+    private static List<GroupItem> CreateTree(Dictionary<string, GroupItem> map)
     {
-        var builder = new StringBuilder();
-        var namespaces = new List<string?>();
-        
-        namespaces.AddRange(groups.Select(g => g.Namespace));
-        namespaces.AddRange(endpoints.Select(g => g.Namespace));
-        
-        foreach (var name in namespaces.Distinct())
+        var childKeys = new HashSet<string>();
+
+        foreach (var kvp in map)
         {
-            builder.AppendLine($"using {name};");
+            var group = kvp.Value;
+
+            if (!string.IsNullOrEmpty(group.Context?.MemberOf))
+            {
+                if (map.TryGetValue(group.Context?.MemberOf!, out var parent))
+                {
+                    parent.Children.Add(group);
+                    childKeys.Add(group.GroupName!);
+                }
+            }
         }
-        return builder.ToString();
+        
+        return map
+            .Where(kvp => !childKeys.Contains(kvp.Key))
+            .Select(kvp => kvp.Value)
+            .ToList();
     }
     
     private static void EmitGroup(
@@ -228,47 +100,27 @@ public class GroupRegistrarExecution
         }
     }
     
-    // private static void EmitGroup(
-    //     StringBuilder sb,
-    //     GroupItem group,
-    //     ImmutableArray<TargetMethodCaptureContext> endpoints,
-    //     string parentBuilderName)
-    // {
-    //     if (group.Context is null)
-    //     {
-    //         return;
-    //     }
-    //
-    //     var builderName = CreateGroupName(group.Context);
-    //
-    //     sb.AppendLine();
-    //
-    //     // Special case for top-level (parent is "app")
-    //     if (parentBuilderName == "app")
-    //     {
-    //         sb.AppendLine($"        var {builderName} = app.Map{group.Context.TypeName}();");
-    //     }
-    //     else
-    //     {
-    //         sb.AppendLine($"        var {builderName} = {parentBuilderName}.Map{group.Context.TypeName}();");
-    //     }
-    //
-    //     sb.AppendLine();
-    //
-    //     // Emit endpoints for this group
-    //     var groupEndpoints = endpoints.Where(e => e.MemberOf == group.GroupName);
-    //     foreach (var endpoint in groupEndpoints)
-    //     {
-    //         sb.AppendLine($"        {builderName}.Map{endpoint.TypeName}{endpoint.MethodName}Endpoint();");
-    //     }
-    //
-    //     // Recursively emit children
-    //     foreach (var child in group.Children)
-    //     {
-    //         EmitGroup(sb, child, endpoints, builderName);
-    //     }
-    // }
-
+    private static string GroupUsingStatements(ImmutableArray<TargetGroupCaptureContext> groups, ImmutableArray<TargetMethodCaptureContext> endpoints)
+    {
+        var builder = new StringBuilder();
+        var namespaces = new List<string?>();
+        
+        namespaces.AddRange(groups.Select(g => g.Namespace));
+        namespaces.AddRange(endpoints.Select(g => g.Namespace));
+        
+        foreach (var name in namespaces.Distinct())
+        {
+            builder.AppendLine($"using {name};");
+        }
+        return builder.ToString();
+    }
+    
+    private static string CreateGroupName(TargetGroupCaptureContext? context)
+    {
+        return $"{context?.Namespace}_{context?.TypeName}".Replace(".", "_").ToLower();
+    }
+    
+    
     private static StringBuilder DebugTree(StringBuilder sb, List<GroupItem> groupDictionary, bool enable)
     {
         if (!enable)
