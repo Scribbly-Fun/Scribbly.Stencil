@@ -138,9 +138,9 @@ public class EndpointGenerator : IIncrementalGenerator
         
         var configureAtt = classSymbol.GetAttributes()
             .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName);
-        
+
         var memberAttributeSymbol = context.SemanticModel.Compilation
-            .GetTypeByMetadataName("Scribbly.Stencil.GroupMemberAttribute`1");
+            .GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
 
         string? genericTypeName = null;
 
@@ -156,48 +156,7 @@ public class EndpointGenerator : IIncrementalGenerator
                 genericTypeName = typeArg.ToDisplayString(); 
             }
         }
-        //
-        // INamedTypeSymbol? memberAttributeSymbol = 
-        //     context.SemanticModel.Compilation.GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
-        //
-        // string? genericTypeName = null;
-        //
-        // foreach (var attributeList in classDeclaration.AttributeLists)
-        // {
-        //     foreach (var attribute in attributeList.Attributes)
-        //     {
-        //         SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(attribute);
-        //         ISymbol? attSymbol = symbolInfo.Symbol;
-        //
-        //         if (attSymbol is null)
-        //         {
-        //             genericTypeName = "// ------->>>>>>> NULLLLLLLLLLLL";    
-        //             continue;
-        //         }
-        //
-        //         genericTypeName = "// ------->>>>>>> Comparing";
-        //         
-        //         if (SymbolEqualityComparer.Default.Equals(attSymbol.ContainingSymbol, memberAttributeSymbol))
-        //         {
-        //             genericTypeName = "// ------->>>>>>> EQUAL";    
-        //             if (attribute.Name is GenericNameSyntax { TypeArgumentList.Arguments.Count: 1 } genericName)
-        //             {
-        //                 genericTypeName = "// ------->>>>>>> PATTERN MATCHED";    
-        //                 TypeSyntax typeSyntax = genericName.TypeArgumentList.Arguments[0];
-        //
-        //                 var typeInfo = context.SemanticModel.GetTypeInfo(typeSyntax);
-        //
-        //                 if (typeInfo.Type is INamedTypeSymbol namedTypeSymbol)
-        //                 {
-        //                     genericTypeName = "// ------->>>>>>> PATTERN MATCHED";    
-        //                     genericTypeName = namedTypeSymbol.Name;
-        //                     // For fully-qualified: namedTypeSymbol.ToDisplayString()
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        
+
         return (classSymbol, new TargetGroupCaptureContext(
             classSymbol.ContainingNamespace.ToDisplayString(),
             classSymbol.Name,
@@ -242,7 +201,7 @@ public class EndpointGenerator : IIncrementalGenerator
             getEndpointAttr.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString(),
             getEndpointAttr.ConstructorArguments.ElementAtOrDefault(2).Value?.ToString());
     }
-    
+
     private static TargetMethodCaptureContext CapturePostContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
     {
         var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);

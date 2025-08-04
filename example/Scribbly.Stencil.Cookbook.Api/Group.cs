@@ -2,8 +2,8 @@
 
 namespace Scribbly.Stencil.Cookbook.ApiService;
 
-[Configure]
 [EndpointGroup("/api", "Application Root")]
+[Configure]
 public partial class ApplicationRoot
 {
     /// <inheritdoc />
@@ -14,20 +14,18 @@ public partial class ApplicationRoot
     }
 }
 
-[Configure]
-[EndpointGroup("/lunch", "Manage Lunch Menu")]
-[GroupMemberAttribute<ApplicationRoot>]
+[EndpointGroup("/lunch", "Manage Lunch Menu"), Configure, GroupMember<ApplicationRoot>]
 public partial class LunchGroup
 {
     /// <inheritdoc />
     public void Configure(IEndpointConventionBuilder lunchGroupBuilder)
     {
-        //--- > Enter Optional Code here for Group Configuration
+        throw new NotImplementedException();
     }
 }
 
-[GroupMember<ApplicationRoot>]
 [EndpointGroup("/dinner", "Manage Dinner Menu")]
+[GroupMember<LunchGroup>]
 public partial class Dinner
 {
 }
@@ -38,7 +36,7 @@ public static partial class LunchEndpoints
     // ----------------------------------------> THE CODE USER WILL WRITE
     
     [GetEndpoint("lunch/{id}")]
-    [GroupMemberAttribute<LunchGroup>]
+    [GroupMember<LunchGroup>]
     private static IResult GetLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
