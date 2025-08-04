@@ -31,5 +31,6 @@ if (app.Environment.IsDevelopment())
 
 app.MapScribblyApp();
 
+
 app.Run();
 
