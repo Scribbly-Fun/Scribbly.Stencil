@@ -26,4 +26,8 @@
     <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Endpoints\Lunch\" />
+  </ItemGroup>
+
 </Project>

@@ -7,9 +7,9 @@ namespace Scribbly.Stencil.Groups;
 
 public class GroupRegistrarExecution
 {
-    public static void Generate(SourceProductionContext context, ImmutableArray<TargetGroupCaptureContext> endpoints)
+    public static void Generate(SourceProductionContext context, ImmutableArray<TargetGroupCaptureContext> groups)
     {
-        if (endpoints.IsDefaultOrEmpty)
+        if (groups.IsDefaultOrEmpty)
             return;
 
         var sb = new StringBuilder($"""
@@ -23,7 +23,15 @@ public class GroupRegistrarExecution
                                     using Microsoft.AspNetCore.Mvc;
                                     using Microsoft.AspNetCore.Routing;
 
+                                    // 
                                     """);
+
+        foreach (var group in groups)
+        {
+            sb.AppendLine();
+            sb.Append("//").Append(group.Namespace).Append(group.RoutePrefix).Append('-').Append(group.TypeName).Append('-').Append(group.MemberOf);
+            sb.AppendLine();
+        }
 
         context.AddSource($"Scribbly.Stencil.GroupRegistry.g.cs", sb.ToString());
     }

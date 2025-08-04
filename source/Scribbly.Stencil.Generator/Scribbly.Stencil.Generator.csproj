@@ -14,5 +14,11 @@
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Endpoints\Types\" />
+      <Folder Include="Groups\Types\" />
+      <Folder Include="Shared\Types\Interfaces\" />
+    </ItemGroup>
     
 </Project>

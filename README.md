@@ -76,8 +76,74 @@ public static IEndpointRouteBuilder MapScribblyEndpoints(this IEndpointRouteBuil
 app.MapScribblyEndpoints();
 ```
 
-*Optionally Add a Group or Route Prefix
+*Optionally Add a Group or Route Prefix*
 
 ```csharp
 app.MapScribblyEndpoints("/api");
+```
+
+# Endpoint Groups
+
+Endpoint groups can be created to map several endpoints with common routing and configuration.  ``Scribbly.Stencil``
+will build this routing tree for you behind the scenes.  Just create a Group and attached members.
+
+```csharp
+[EndpointGroup("/lunch", "Manage Lunch Menu")]
+public partial class LunchGroup
+{
+}
+```
+
+This will create a routing group.  Groups can even be members of other groups.  Use the ``GroupMember<T>`` to target a group.  Your new group will be added to the group specified in the Generic Param.
+
+```csharp
+[EndpointGroup("/menu", "Menu")]
+public partial class MenuGroup
+{
+}
+
+[GroupMember<MenuGroup>]
+[EndpointGroup("/lunch", "Manage Lunch Menu")]
+public partial class LunchGroup
+{
+}
+```
+
+Of course you'll need to add endpoints to groups as well yielding a routable endpoint `/menu/lunch/{id}`
+
+```csharp
+public partial class LunchEndpoints
+{
+    [GetEndpoint("lunch/{id}")]
+    [GroupMember<LunchGroup>]
+    private static IResult GetLunchMenu(HttpContext context, [FromRoute] string id)
+    {
+        return Results.Ok(id);
+    }
+}
+```
+
+### Configuration
+
+While this is great you may need to plug into the route building and override or append configuration to groups.
+
+Simply add the `Configure` attribute to the `class declaration` and magic 🐣
+
+![group_configure.gif](./docs/group_configure.gif)
+
+Your type will now implement a custom interface used by the code generator.  This tells `Scribbly.Stencil` to invoke your configure method allowing you to modify and append the builder.
+
+```csharp
+[Configure]
+[GroupMember<ApplicationRoot>]
+[EndpointGroup("/lunch", "Manage Lunch Menu")]
+public partial class LunchGroup
+{
+    /// <inheritdoc />
+    public void Configure(IEndpointConventionBuilder lunchGroupBuilder)
+    {
+        applicationRootBuilder.AddEndpointFilter<MyFilter>();
+        // .....
+    }
+}
 ```

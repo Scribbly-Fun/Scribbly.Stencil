@@ -49,7 +49,7 @@ public static partial class {subject.TypeName}
 }}
 ";
         var handlerName = subject.Namespace is null ? $"{subject.TypeName}.{subject.MethodName}" : $"{subject.Namespace}.{subject.TypeName}.{subject.MethodName}";
-        context.AddSource($"{handlerName}.g.cs", handlerCode);
+        context.AddSource($"Handler.{handlerName}.g.cs", handlerCode);
     }
 
     private static string AddApiDocumentation(this TargetMethodCaptureContext subject)

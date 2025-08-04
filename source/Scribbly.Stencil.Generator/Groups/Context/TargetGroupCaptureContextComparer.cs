@@ -23,7 +23,8 @@ internal class TargetGroupCaptureContextComparer : IEqualityComparer<TargetGroup
             hashCode = hashCode * 397 ^ (obj?.TypeName != null ? obj.TypeName.GetHashCode() : 0);
             hashCode = hashCode * 397 ^ (obj?.RoutePrefix != null ? obj.RoutePrefix.GetHashCode() : 0);
             hashCode = hashCode * 397 ^ (obj?.Tag != null ? obj.Tag.GetHashCode() : 0);
-            hashCode = hashCode * 397 ^ (obj?.Parent != null ? obj.Parent.GetHashCode() : 0);
+            hashCode = hashCode * 397 ^ (obj?.MemberOf != null ? obj.MemberOf.GetHashCode() : 0);
+            hashCode = hashCode * 397 ^ (obj?.IsConfigurable != null ? obj.IsConfigurable.GetHashCode() : 0);
             
             return hashCode;
         }

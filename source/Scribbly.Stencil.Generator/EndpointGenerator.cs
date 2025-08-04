@@ -8,6 +8,7 @@ using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Endpoints.Context;
 using Scribbly.Stencil.Endpoints.Execution;
 using Scribbly.Stencil.Groups;
+using Scribbly.Stencil.Types.Attributes;
 
 namespace Scribbly.Stencil;
 
@@ -35,6 +36,8 @@ public class EndpointGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(endpointProvider, EndpointHandlerExecution.Generate);
         context.RegisterSourceOutput(collectedEndpoints, EndpointRegistrarExecution.Generate);
         
+        context.RegisterSourceOutput(routeGroupProvider, GroupBuilderExecution.Generate);
+        context.RegisterSourceOutput(routeGroupProvider, GroupExtensionsExecution.Generate);
         context.RegisterSourceOutput(collectedGroups, GroupRegistrarExecution.Generate);
     }
     
@@ -117,29 +120,32 @@ public class EndpointGenerator : IIncrementalGenerator
         if (classSymbol is null)
             return null;
 
-        var getEndpointAttr = classSymbol.GetAttributes()
+        var groupAtt = classSymbol.GetAttributes()
             .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == EndpointGroupAttribute.TypeFullName);
         
-        if (getEndpointAttr is null)
+        if (groupAtt is null)
         {
             return null;
         }
 
-        var prefix = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString();
-        var parent = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString();
-        var tag = getEndpointAttr.ConstructorArguments.ElementAtOrDefault(2).Value?.ToString();
+        var prefix = groupAtt.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString();
+        var tag = groupAtt.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString();
 
         if (prefix is null)
         {
             return null;
         }
         
+        var configureAtt = classSymbol.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName);
+        
         return (classSymbol, new TargetGroupCaptureContext(
             classSymbol.ContainingNamespace.ToDisplayString(),
             classSymbol.Name,
             prefix,
             tag,
-            parent));
+            null,
+            configureAtt is not null));
     }
     
     private static bool ValidateHandlerCandidateModifiers(ClassDeclarationSyntax? candidate)
@@ -164,7 +170,7 @@ public class EndpointGenerator : IIncrementalGenerator
         if (!candidate.Modifiers.Any(SyntaxKind.PartialKeyword))
             return false;
 
-        if (!candidate.Modifiers.Any(SyntaxKind.StaticKeyword))
+        if (candidate.Modifiers.Any(SyntaxKind.StaticKeyword))
             return false;
 
         return true;
@@ -279,6 +285,7 @@ public class EndpointGenerator : IIncrementalGenerator
             name,
             type.metadata.RoutePrefix,
             type.metadata.Tag,
-            type.metadata.Parent);
+            type.metadata.MemberOf,
+            type.metadata.IsConfigurable);
     }
 }
