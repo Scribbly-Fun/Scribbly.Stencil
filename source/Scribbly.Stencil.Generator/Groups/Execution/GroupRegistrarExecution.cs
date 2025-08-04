@@ -82,7 +82,7 @@ public class GroupRegistrarExecution
     private static List<GroupItem> CreateTree(ImmutableArray<TargetGroupCaptureContext> groups)
     {
         var map = new ConcurrentDictionary<string, GroupItem>();
-        var childKeys = new HashSet<string>();
+        // var childKeys = new HashSet<string>();
 
         foreach (var group in groups)
         {
@@ -97,7 +97,7 @@ public class GroupRegistrarExecution
                 var parent = GetOrCreateNode(map, group.MemberOf, null);
                 var child = GetOrCreateNode(map, key, group);
                 parent.Children.Add(child);
-                childKeys.Add(key);
+                // childKeys.Add(key);
             }
         }
 
@@ -153,7 +153,7 @@ public class GroupRegistrarExecution
             //
             foreach (var root in groupDictionary)
             {
-                EmitGroup(sb, root, endpoints, parentBuilderName: string.Empty);
+                EmitGroup(sb, root, endpoints, parentBuilderName: "app");
             }
         }
         
@@ -186,6 +186,55 @@ public class GroupRegistrarExecution
         return builder.ToString();
     }
     
+    // private static void EmitGroup(
+    //     StringBuilder sb,
+    //     GroupItem group,
+    //     ImmutableArray<TargetMethodCaptureContext> endpoints,
+    //     string parentBuilderName)
+    // {
+    //     if (group.Context is null)
+    //     {
+    //         return;
+    //     }
+    //
+    //     var builderName = CreateGroupName(group.Context);
+    //     //
+    //     // if (!endpoints.Any(e => e.MemberOf == group.GroupName) && !group.Children.Any())
+    //     // {
+    //     //     foreach (var child in group.Children)
+    //     //     {
+    //     //         EmitGroup(sb, child, endpoints, builderName);
+    //     //     }
+    //     //     return;
+    //     // }
+    //     //
+    //     
+    //     sb.AppendLine();
+    //     if (string.IsNullOrEmpty(parentBuilderName))
+    //     {
+    //         sb.AppendLine($"        var {builderName} = app.Map{group.Context.TypeName}();");
+    //     }
+    //     else
+    //     {
+    //         sb.AppendLine($"        var {builderName} = {parentBuilderName}.Map{group.Context.TypeName}();");
+    //     }
+    //
+    //     sb.AppendLine();
+    //
+    //     // Emit endpoints for this group
+    //     var groupEndpoints = endpoints.Where(e => e.MemberOf == group.GroupName);
+    //     foreach (var endpoint in groupEndpoints)
+    //     {
+    //         sb.AppendLine($"        {builderName}.Map{endpoint.TypeName}{endpoint.MethodName}Endpoint();");
+    //     }
+    //
+    //     // Recursively emit children
+    //     foreach (var child in group.Children)
+    //     {
+    //         EmitGroup(sb, child, endpoints, builderName);
+    //     }
+    // }
+    
     private static void EmitGroup(
         StringBuilder sb,
         GroupItem group,
@@ -198,19 +247,11 @@ public class GroupRegistrarExecution
         }
 
         var builderName = CreateGroupName(group.Context);
-        //
-        // if (!endpoints.Any(e => e.MemberOf == group.GroupName) && !group.Children.Any())
-        // {
-        //     foreach (var child in group.Children)
-        //     {
-        //         EmitGroup(sb, child, endpoints, builderName);
-        //     }
-        //     return;
-        // }
-        //
-        
+
         sb.AppendLine();
-        if (string.IsNullOrEmpty(parentBuilderName))
+
+        // Special case for top-level (parent is "app")
+        if (parentBuilderName == "app")
         {
             sb.AppendLine($"        var {builderName} = app.Map{group.Context.TypeName}();");
         }
@@ -234,8 +275,7 @@ public class GroupRegistrarExecution
             EmitGroup(sb, child, endpoints, builderName);
         }
     }
-
-
+    
     private static StringBuilder DebugTree(StringBuilder sb, ConcurrentDictionary<string, GroupItem> groupDictionary, bool enable)
     {
         if (!enable)
