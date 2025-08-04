@@ -48,45 +48,66 @@ public class GroupRegistrarExecution
                 }
                 return new GroupItem(k, context);
             });
-        // if (map.TryGetValue(id, out var existing))
-        // {
-        //     existing.Context = context;
-        //     return existing;
-        // }
-        //
-        // var node = new GroupItem(id, context);
-        // map.Add(id, node);
-        //
-        // return node;
     }
 
-    private static ConcurrentDictionary<string, GroupItem>? CreateTree(ImmutableArray<TargetGroupCaptureContext> groups)
+    // private static ConcurrentDictionary<string, GroupItem>? CreateTree(ImmutableArray<TargetGroupCaptureContext> groups)
+    // {
+    //     if (groups.IsDefaultOrEmpty)
+    //     {
+    //         return null;
+    //     }
+    //     
+    //     if (groups.IsDefaultOrEmpty)
+    //     {
+    //         return null;
+    //     }
+    //
+    //     var map = new ConcurrentDictionary<string, GroupItem>();  
+    //     
+    //     foreach (var group in groups)
+    //     {
+    //         if (group.MemberOf is null)
+    //         {
+    //             GetOrCreateNode(map, $"{group.Namespace}.{group.TypeName}", group);
+    //         }
+    //         else
+    //         {
+    //             GetOrCreateNode(map, group.MemberOf, null).Children.Add(GetOrCreateNode(map, $"{group.Namespace}.{group.TypeName}", group));
+    //         }
+    //     }
+    //     
+    //     return map; // Return the root node
+    // }
+    //
+    private static List<GroupItem> CreateTree(ImmutableArray<TargetGroupCaptureContext> groups)
     {
-        if (groups.IsDefaultOrEmpty)
-        {
-            return null;
-        }
-        
-        if (groups.IsDefaultOrEmpty)
-        {
-            return null;
-        }
+        var map = new ConcurrentDictionary<string, GroupItem>();
+        var childKeys = new HashSet<string>();
 
-        var map = new ConcurrentDictionary<string, GroupItem>();  
-        
         foreach (var group in groups)
         {
+            var key = $"{group.Namespace}.{group.TypeName}";
+
             if (group.MemberOf is null)
             {
-                GetOrCreateNode(map, $"{group.Namespace}.{group.TypeName}", group);
+                GetOrCreateNode(map, key, group);
             }
             else
             {
-                GetOrCreateNode(map, group.MemberOf, null).Children.Add(GetOrCreateNode(map, $"{group.Namespace}.{group.TypeName}", group));
+                var parent = GetOrCreateNode(map, group.MemberOf, null);
+                var child = GetOrCreateNode(map, key, group);
+                parent.Children.Add(child);
+                childKeys.Add(key);
             }
         }
-        
-        return map; // Return the root node
+
+        // Return only root nodes (not in childKeys)
+        var roots = map
+            // .Where(kvp => !childKeys.Contains(kvp.Key))
+            .Select(kvp => kvp.Value)
+            .ToList();
+
+        return roots;
     }
     
     public static void Generate(SourceProductionContext context, (ImmutableArray<TargetMethodCaptureContext> Endpoints, ImmutableArray<TargetGroupCaptureContext> Groups) tree)
@@ -112,72 +133,33 @@ public class GroupRegistrarExecution
 
                                      public static class GroupRegistrationExtensions
                                      {
-                                         public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapApplicationEndpoints(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder app)
+                                         public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapScribblyApp(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder app)
                                          {                            
                                      """);
 
         if (groupDictionary is not null)
         {
             sb.AppendLine();
-            DebugTree(sb, groupDictionary, false);
+            DebugTree(sb, groupDictionary, true);
             
-            foreach (var group in groupDictionary)
+            // foreach (var group in groupDictionary)
+            // {
+            //     var isRoot = !groups.Any(g => $"{g.Namespace}.{g.TypeName}" == group.Key && g.MemberOf is not null);
+            //     if (isRoot)
+            //     {
+            //         EmitGroup(sb, group.Value, endpoints, parentBuilderName: string.Empty);
+            //     }
+            // }
+            //
+            foreach (var root in groupDictionary)
             {
-                if (!group.Value.IsParent)
-                {
-                    continue;
-                }
-
-                var builderName = CreateGroupName(group.Value.Context);
-                
-                sb.AppendLine(
-                    $"""
-                            var {builderName} = app.Map{group.Value.Context?.TypeName}();
-                     """);
-
-                var groupsEndpoints = endpoints.Where(e => e.MemberOf == group.Key);
-
-                foreach (var groupsEndpoint in groupsEndpoints)
-                {
-                    sb.AppendLine(
-                        $"""
-                                //MapLunchEndpointsGetLunchMenuEndpoint
-                                {builderName}.Map{groupsEndpoint.TypeName}{groupsEndpoint.MethodName}Endpoint();
-                         """);
-                    
-                    sb.AppendLine();
-                }
-                
-                foreach (var childGroup in group.Value.Children)
-                {
-                    var childGroupBuilderName = CreateGroupName(childGroup.Context);
-
-                    sb.AppendLine(
-                        $"""
-                                var {childGroupBuilderName} = {builderName}.Map{childGroup.Context?.TypeName}();
-                         """);
-                    
-                    var childGroupEndpoints = endpoints.Where(e => e.MemberOf == childGroup.GroupName);
-
-                    foreach (var childGroupEndpoint in childGroupEndpoints)
-                    {
-                        sb.AppendLine(
-                            $"""
-                                    //MapLunchEndpointsGetLunchMenuEndpoint
-                                    {childGroupBuilderName}.Map{childGroupEndpoint.TypeName}{childGroupEndpoint.MethodName}Endpoint();
-                             """);
-                    
-                        sb.AppendLine();
-                    }
-                    
-                    sb.AppendLine();
-                }
+                EmitGroup(sb, root, endpoints, parentBuilderName: string.Empty);
             }
         }
         
         sb.AppendLine("""
-                                return app;
-                            }
+                              return app;
+                          }
                       }
                       """);
         context.AddSource($"Registrar.Scribbly.Stencil.GroupRegistry.g.cs", sb.ToString());
@@ -203,6 +185,56 @@ public class GroupRegistrarExecution
         }
         return builder.ToString();
     }
+    
+    private static void EmitGroup(
+        StringBuilder sb,
+        GroupItem group,
+        ImmutableArray<TargetMethodCaptureContext> endpoints,
+        string parentBuilderName)
+    {
+        if (group.Context is null)
+        {
+            return;
+        }
+
+        var builderName = CreateGroupName(group.Context);
+        //
+        // if (!endpoints.Any(e => e.MemberOf == group.GroupName) && !group.Children.Any())
+        // {
+        //     foreach (var child in group.Children)
+        //     {
+        //         EmitGroup(sb, child, endpoints, builderName);
+        //     }
+        //     return;
+        // }
+        //
+        
+        sb.AppendLine();
+        if (string.IsNullOrEmpty(parentBuilderName))
+        {
+            sb.AppendLine($"        var {builderName} = app.Map{group.Context.TypeName}();");
+        }
+        else
+        {
+            sb.AppendLine($"        var {builderName} = {parentBuilderName}.Map{group.Context.TypeName}();");
+        }
+
+        sb.AppendLine();
+
+        // Emit endpoints for this group
+        var groupEndpoints = endpoints.Where(e => e.MemberOf == group.GroupName);
+        foreach (var endpoint in groupEndpoints)
+        {
+            sb.AppendLine($"        {builderName}.Map{endpoint.TypeName}{endpoint.MethodName}Endpoint();");
+        }
+
+        // Recursively emit children
+        foreach (var child in group.Children)
+        {
+            EmitGroup(sb, child, endpoints, builderName);
+        }
+    }
+
 
     private static StringBuilder DebugTree(StringBuilder sb, ConcurrentDictionary<string, GroupItem> groupDictionary, bool enable)
     {
@@ -215,7 +247,46 @@ public class GroupRegistrarExecution
             sb.AppendLine();
             sb.AppendLine(
                 $"// ----> KEY: {group.Key} NAME: {group.Value.GroupName} TYPE: {group.Value.Context?.TypeName}");
+            
+            sb.AppendLine($"// GROUP KEY: {group.Key}");
+            sb.AppendLine($"// ENDPOINT MEMBEROF: {group.Value.Context?.MemberOf}");
+            
             foreach (var valueChild in group.Value.Children)
+            {
+                sb.AppendLine(
+                    $"//          ---------------> CHILD: {valueChild.GroupName} TYPE: {valueChild.Context?.TypeName}");
+
+                if (valueChild.IsParent)
+                {
+                    foreach (var childsChild in valueChild.Children)
+                    {
+                        sb.AppendLine(
+                            $"//          ------------------------> CHILD Of CHILD: {childsChild.GroupName} TYPE: {childsChild.Context?.TypeName}");
+                    }
+                }
+            }
+        }
+        
+        return sb;
+    }
+
+    
+    private static StringBuilder DebugTree(StringBuilder sb, List<GroupItem> groupDictionary, bool enable)
+    {
+        if (!enable)
+        {
+            return sb;
+        }
+        foreach (var group in groupDictionary)
+        {
+            sb.AppendLine();
+            sb.AppendLine(
+                $"// ----> KEY: {group.GroupName} NAME: {group.GroupName} TYPE: {group.Context?.TypeName}");
+            
+            sb.AppendLine($"// GROUP KEY: {group.GroupName}");
+            sb.AppendLine($"// ENDPOINT MEMBEROF: {group.Context?.MemberOf}");
+            
+            foreach (var valueChild in group.Children)
             {
                 sb.AppendLine(
                     $"//          ---------------> CHILD: {valueChild.GroupName} TYPE: {valueChild.Context?.TypeName}");
