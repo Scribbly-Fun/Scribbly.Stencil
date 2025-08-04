@@ -38,11 +38,11 @@ public static class GroupExtensionsExecution
                   /// </summary>
                   public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{{subject.TypeName}}(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
                   {
-                      var group = new global::{{subject.Namespace}}.{{subject.TypeName}}();
+                      var scribblyGroup = new global::{{subject.Namespace}}.{{subject.TypeName}}();
 
-                      group.Map{{subject.TypeName}}(builder);
+                      var routeGroup = scribblyGroup.Map{{subject.TypeName}}(builder);
                       
-                      return builder;
+                      return routeGroup;
                   }
               }
               """;
