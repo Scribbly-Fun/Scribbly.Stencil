@@ -24,10 +24,14 @@ if (app.Environment.IsDevelopment())
         options.Theme = ScalarTheme.Purple;
     });
 }
+//
+// app.MapDefaultEndpoints();
+//
+// app.MapScribblyEndpoints();
 
-app.MapDefaultEndpoints();
 
-app.MapScribblyEndpoints();
+// app.MapBreakfastGroup5EndpointGroup();
+app.MapApplicationEndpoints();
 
 app.Run();
 

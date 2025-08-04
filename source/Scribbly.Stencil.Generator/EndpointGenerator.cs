@@ -1,5 +1,6 @@
 ﻿// ReSharper disable SuggestVarOrType_Elsewhere
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,17 +29,19 @@ public class EndpointGenerator : IIncrementalGenerator
             .Where(static (type) => type.HasValue)
             .Select(static (type, _) => TransformGroupType(type!.Value))
             .WithComparer(TargetGroupCaptureContextComparer.Instance);
-        
-        // TODO: Pass the collected endpoints and collected groups to a single generator that emits the mapped together tree.
+
         var collectedEndpoints = endpointProvider.Collect();
         var collectedGroups = routeGroupProvider.Collect();
+
+        var routeTree = collectedEndpoints.Combine(collectedGroups);
 
         context.RegisterSourceOutput(endpointProvider, EndpointHandlerExecution.Generate);
         context.RegisterSourceOutput(collectedEndpoints, EndpointRegistrarExecution.Generate);
         
         context.RegisterSourceOutput(routeGroupProvider, GroupBuilderExecution.Generate);
         context.RegisterSourceOutput(routeGroupProvider, GroupExtensionsExecution.Generate);
-        context.RegisterSourceOutput(collectedGroups, GroupRegistrarExecution.Generate);
+        
+        context.RegisterSourceOutput(routeTree, GroupRegistrarExecution.Generate);
     }
     
     private static bool HandlerSyntacticPredicate(SyntaxNode node, CancellationToken cancellation)
@@ -313,11 +316,11 @@ public class EndpointGenerator : IIncrementalGenerator
             ? null
             : type.symbol.ContainingNamespace.ToDisplayString();
 
-        var name = type.symbol.Name;
+        var typeName = type.symbol.Name;
 
         return new TargetGroupCaptureContext(
             @namespace,
-            name,
+            typeName,
             type.metadata.RoutePrefix,
             type.metadata.Tag,
             type.metadata.MemberOf,

@@ -14,20 +14,71 @@ public partial class ApplicationRoot
     }
 }
 
-[EndpointGroup("/lunch", "Manage Lunch Menu"), Configure, GroupMember<ApplicationRoot>]
+[EndpointGroup("/lunch", "Manage Lunch Menu"), Configure]
+[GroupMember<ApplicationRoot>]
 public partial class LunchGroup
 {
     /// <inheritdoc />
     public void Configure(IEndpointConventionBuilder lunchGroupBuilder)
     {
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
     }
 }
 
 [EndpointGroup("/dinner", "Manage Dinner Menu")]
-[GroupMember<LunchGroup>]
-public partial class Dinner
+[GroupMember<ApplicationRoot>]
+public partial class BreakfastGroup
 {
+}
+[EndpointGroup("/dinner", "Manage Dinner Menu")]
+[GroupMember<BreakfastGroup>]
+public partial class BreakfastGroup2
+{
+}
+[EndpointGroup("/dinner", "Manage Dinner Menu")]
+[GroupMember<BreakfastGroup2>]
+public partial class BreakfastGroup3
+{
+}
+[EndpointGroup("/dinner", "Manage Dinner Menu")]
+[GroupMember<BreakfastGroup3>]
+public partial class BreakfastGroup4
+{
+}
+
+[EndpointGroup("/dinner", "Manage Dinner Menu")]
+[GroupMember<BreakfastGroup4>]
+public partial class BreakfastGroup5
+{
+}
+
+[EndpointGroup("/dinner", "Manage Dinner Menu")]
+[GroupMember<BreakfastGroup4>]
+public partial class BreakfastGroup7
+{
+}
+[EndpointGroup("/dinner", "Manage Dinner Menu")]
+[GroupMember<BreakfastGroup4>]
+public partial class BreakfastGroup8
+{
+}
+[EndpointGroup("/dinner", "Manage Dinner Menu")]
+[GroupMember<BreakfastGroup4>]
+public partial class BreakfastGroup9
+{
+}
+
+
+[EndpointGroup("/test")]
+[GroupMember<ApplicationRoot>]
+[Configure]
+public partial class DinnerGroup
+{
+    /// <inheritdoc />
+    public void Configure(IEndpointConventionBuilder dinnerGroupBuilder)
+    {
+        // throw new NotImplementedException();
+    }
 }
 
 public static partial class LunchEndpoints
@@ -50,7 +101,7 @@ public static partial class LunchEndpoints
     
     [PostEndpoint("lunch/{id}", "Create Lunch", "Creates a new Lunch Item")]
     [GroupMember<LunchGroup>]
-    private static IResult PostLunchMenu(HttpContext context, [FromRoute] string id)
+    private static object PostLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
     }
