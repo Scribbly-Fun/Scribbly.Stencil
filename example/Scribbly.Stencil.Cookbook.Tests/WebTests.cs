@@ -20,7 +20,7 @@ public class WebTests
         // Act
         var httpClient = app.CreateHttpClient("scrb-stencil");
         await resourceNotificationService.WaitForResourceAsync("scrb-stencil", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
-        var response = await httpClient.GetAsync("/weather");
+        var response = await httpClient.GetAsync("/menu");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
