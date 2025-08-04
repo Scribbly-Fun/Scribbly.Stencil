@@ -2,6 +2,10 @@
 using Scalar.AspNetCore;
 using Scribbly.Stencil;
 using Scribbly.Stencil.Cookbook.ApiService;
+using Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu;
+using Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Breakfast;
+using Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Dinner;
+using Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Lunch;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,9 +29,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapDefaultEndpoints();
+app.MapScribblyApp();
 
-app.MapScribblyEndpoints();
 
 app.Run();
 

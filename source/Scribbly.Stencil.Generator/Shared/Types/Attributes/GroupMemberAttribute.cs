@@ -7,7 +7,7 @@ internal static class GroupMemberAttribute
     public const string FileName = "GroupMemberAttribute.g.cs";
     public const string TypeName = "GroupMemberAttribute";
     public const string UsageName = "GroupMember";
-    public const string TypeFullName = "Scribbly.Stencil.GroupMemberAttribute";
+    public const string TypeFullName = "Scribbly.Stencil.GroupMemberAttribute`1";
     
     public static readonly string Value = 
         $$"""

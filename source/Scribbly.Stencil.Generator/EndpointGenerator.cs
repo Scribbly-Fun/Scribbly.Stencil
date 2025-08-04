@@ -1,5 +1,6 @@
 ﻿// ReSharper disable SuggestVarOrType_Elsewhere
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,17 +29,19 @@ public class EndpointGenerator : IIncrementalGenerator
             .Where(static (type) => type.HasValue)
             .Select(static (type, _) => TransformGroupType(type!.Value))
             .WithComparer(TargetGroupCaptureContextComparer.Instance);
-        
-        // TODO: Pass the collected endpoints and collected groups to a single generator that emits the mapped together tree.
+
         var collectedEndpoints = endpointProvider.Collect();
         var collectedGroups = routeGroupProvider.Collect();
+
+        var routeTree = collectedEndpoints.Combine(collectedGroups);
 
         context.RegisterSourceOutput(endpointProvider, EndpointHandlerExecution.Generate);
         context.RegisterSourceOutput(collectedEndpoints, EndpointRegistrarExecution.Generate);
         
         context.RegisterSourceOutput(routeGroupProvider, GroupBuilderExecution.Generate);
         context.RegisterSourceOutput(routeGroupProvider, GroupExtensionsExecution.Generate);
-        context.RegisterSourceOutput(collectedGroups, GroupRegistrarExecution.Generate);
+        
+        context.RegisterSourceOutput(routeTree, GroupRegistrarExecution.Generate);
     }
     
     private static bool HandlerSyntacticPredicate(SyntaxNode node, CancellationToken cancellation)
@@ -107,6 +110,22 @@ public class EndpointGenerator : IIncrementalGenerator
             return null;
         }
         
+        var memberAttributeSymbol = context.SemanticModel.Compilation
+            .GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
+
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition, memberAttributeSymbol))
+            {
+                continue;
+            }
+            if (attribute?.AttributeClass is { TypeArguments.Length: 1 } attrSymbol &&
+                attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            {
+                capture.MemberOf = typeArg.ToDisplayString(); 
+            }
+        }
+
         return (classSymbol, capture);
     }
     
@@ -138,13 +157,31 @@ public class EndpointGenerator : IIncrementalGenerator
         
         var configureAtt = classSymbol.GetAttributes()
             .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName);
-        
+
+        var memberAttributeSymbol = context.SemanticModel.Compilation
+            .GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
+
+        string? genericTypeName = null;
+
+        foreach (var attribute in classSymbol.GetAttributes())
+        {
+            if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition, memberAttributeSymbol))
+            {
+                continue;
+            }
+            if (attribute?.AttributeClass is { TypeArguments.Length: 1 } attrSymbol &&
+                attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            {
+                genericTypeName = typeArg.ToDisplayString(); 
+            }
+        }
+
         return (classSymbol, new TargetGroupCaptureContext(
             classSymbol.ContainingNamespace.ToDisplayString(),
             classSymbol.Name,
             prefix,
             tag,
-            null,
+            genericTypeName,
             configureAtt is not null));
     }
     
@@ -183,7 +220,7 @@ public class EndpointGenerator : IIncrementalGenerator
             getEndpointAttr.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString(),
             getEndpointAttr.ConstructorArguments.ElementAtOrDefault(2).Value?.ToString());
     }
-    
+
     private static TargetMethodCaptureContext CapturePostContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
     {
         var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
@@ -264,7 +301,8 @@ public class EndpointGenerator : IIncrementalGenerator
             type.metadata.HttpMethod,
             type.metadata.HttpRoute,
             type.metadata.Name,
-            type.metadata.Description);
+            type.metadata.Description,
+            type.metadata.MemberOf);
     }
     
     /// <summary>
@@ -278,11 +316,11 @@ public class EndpointGenerator : IIncrementalGenerator
             ? null
             : type.symbol.ContainingNamespace.ToDisplayString();
 
-        var name = type.symbol.Name;
+        var typeName = type.symbol.Name;
 
         return new TargetGroupCaptureContext(
             @namespace,
-            name,
+            typeName,
             type.metadata.RoutePrefix,
             type.metadata.Tag,
             type.metadata.MemberOf,

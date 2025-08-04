@@ -52,6 +52,6 @@ public static class ScribblyEndpointRegistry
         sb.AppendLine(@"        return builder;
     } 
 }");
-        context.AddSource($"EndpointRegistry.g.cs", sb.ToString());
+        context.AddSource($"Registrar.Scribbly.Stencil.EndpointRegistry.g.cs", sb.ToString());
     }
 }

@@ -64,7 +64,7 @@ public static class GroupBuilderExecution
                       
                       {{subject.AddApiDocumentation()}}
                       
-                      return builder;
+                      return group;
                   }
               }
               """;
