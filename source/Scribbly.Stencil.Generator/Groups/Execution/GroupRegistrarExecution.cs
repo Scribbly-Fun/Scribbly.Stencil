@@ -108,7 +108,7 @@ public class GroupRegistrarExecution
                                      using Microsoft.AspNetCore.Mvc;
                                      using Microsoft.AspNetCore.Routing;
                                      
-                                     {{GroupUsingStatements(groups)}}
+                                     {{GroupUsingStatements(groups, endpoints)}}
 
                                      public static class GroupRegistrationExtensions
                                      {
@@ -118,7 +118,8 @@ public class GroupRegistrarExecution
 
         if (groupDictionary is not null)
         {
-            DebugTree(sb, groupDictionary, true);
+            sb.AppendLine();
+            DebugTree(sb, groupDictionary, false);
             
             foreach (var group in groupDictionary)
             {
@@ -126,27 +127,54 @@ public class GroupRegistrarExecution
                 {
                     continue;
                 }
+
+                var builderName = CreateGroupName(group.Value.Context);
+                
                 sb.AppendLine(
                     $"""
-                            var {group.Value.GroupName?.Replace(".", "")}RouteGroup = app.Map{group.Value.Context?.TypeName}();
+                            var {builderName} = app.Map{group.Value.Context?.TypeName}();
                      """);
-                foreach (var child in group.Value.Children)
+
+                var groupsEndpoints = endpoints.Where(e => e.MemberOf == group.Key);
+
+                foreach (var groupsEndpoint in groupsEndpoints)
                 {
                     sb.AppendLine(
                         $"""
-                                {group.Value.GroupName?.Replace(".", "")}RouteGroup.Map{group.Value.Context?.TypeName}();
+                                //MapLunchEndpointsGetLunchMenuEndpoint
+                                {builderName}.Map{groupsEndpoint.TypeName}{groupsEndpoint.MethodName}Endpoint();
                          """);
+                    
+                    sb.AppendLine();
+                }
+                
+                foreach (var childGroup in group.Value.Children)
+                {
+                    var childGroupBuilderName = CreateGroupName(childGroup.Context);
+
+                    sb.AppendLine(
+                        $"""
+                                var {childGroupBuilderName} = {builderName}.Map{childGroup.Context?.TypeName}();
+                         """);
+                    
+                    var childGroupEndpoints = endpoints.Where(e => e.MemberOf == childGroup.GroupName);
+
+                    foreach (var childGroupEndpoint in childGroupEndpoints)
+                    {
+                        sb.AppendLine(
+                            $"""
+                                    //MapLunchEndpointsGetLunchMenuEndpoint
+                                    {childGroupBuilderName}.Map{childGroupEndpoint.TypeName}{childGroupEndpoint.MethodName}Endpoint();
+                             """);
+                    
+                        sb.AppendLine();
+                    }
+                    
+                    sb.AppendLine();
                 }
             }
         }
         
-        foreach (var endpoint in endpoints)
-        {
-            var methodName = endpoint.MemberOf ?? "app";
-            
-            sb.AppendLine($"// {methodName}.Map{endpoint.TypeName}()");
-        }
-
         sb.AppendLine("""
                                 return app;
                             }
@@ -156,14 +184,23 @@ public class GroupRegistrarExecution
     }
 
 
-    private static string GroupUsingStatements(ImmutableArray<TargetGroupCaptureContext> groups)
+    private static string CreateGroupName(TargetGroupCaptureContext? context)
+    {
+        return $"{context?.Namespace}_{context?.TypeName}".Replace(".", "_").ToLower();
+    }
+    
+    private static string GroupUsingStatements(ImmutableArray<TargetGroupCaptureContext> groups, ImmutableArray<TargetMethodCaptureContext> endpoints)
     {
         var builder = new StringBuilder();
-        foreach (var group in groups.Select(g => g.Namespace).Distinct())
-        {
-            builder.AppendLine($"using {group};");
-        }
+        var namespaces = new List<string?>();
         
+        namespaces.AddRange(groups.Select(g => g.Namespace));
+        namespaces.AddRange(endpoints.Select(g => g.Namespace));
+        
+        foreach (var name in namespaces.Distinct())
+        {
+            builder.AppendLine($"using {name};");
+        }
         return builder.ToString();
     }
 
@@ -196,4 +233,5 @@ public class GroupRegistrarExecution
         
         return sb;
     }
+
 }

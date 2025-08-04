@@ -31,39 +31,39 @@ public partial class BreakfastGroup
 {
 }
 [EndpointGroup("/dinner", "Manage Dinner Menu")]
-[GroupMember<BreakfastGroup>]
+[GroupMember<ApplicationRoot>]
 public partial class BreakfastGroup2
 {
 }
 [EndpointGroup("/dinner", "Manage Dinner Menu")]
-[GroupMember<BreakfastGroup2>]
+[GroupMember<ApplicationRoot>]
 public partial class BreakfastGroup3
 {
 }
 [EndpointGroup("/dinner", "Manage Dinner Menu")]
-[GroupMember<BreakfastGroup3>]
+[GroupMember<ApplicationRoot>]
 public partial class BreakfastGroup4
 {
 }
 
 [EndpointGroup("/dinner", "Manage Dinner Menu")]
-[GroupMember<BreakfastGroup4>]
+[GroupMember<ApplicationRoot>]
 public partial class BreakfastGroup5
 {
 }
 
 [EndpointGroup("/dinner", "Manage Dinner Menu")]
-[GroupMember<BreakfastGroup4>]
+[GroupMember<ApplicationRoot>]
 public partial class BreakfastGroup7
 {
 }
 [EndpointGroup("/dinner", "Manage Dinner Menu")]
-[GroupMember<BreakfastGroup4>]
+[GroupMember<ApplicationRoot>]
 public partial class BreakfastGroup8
 {
 }
 [EndpointGroup("/dinner", "Manage Dinner Menu")]
-[GroupMember<BreakfastGroup4>]
+[GroupMember<ApplicationRoot>]
 public partial class BreakfastGroup9
 {
 }
@@ -86,8 +86,8 @@ public static partial class LunchEndpoints
 
     // ----------------------------------------> THE CODE USER WILL WRITE
     
-    [GetEndpoint("lunch/{id}")]
-    [GroupMember<LunchGroup>]
+    [GetEndpoint("lunch/{id}", "Gets Lunch", "Queries a new Lunch Item")]
+    [GroupMember<ApplicationRoot>]
     private static IResult GetLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
@@ -100,14 +100,14 @@ public static partial class LunchEndpoints
     }
     
     [PostEndpoint("lunch/{id}", "Create Lunch", "Creates a new Lunch Item")]
-    [GroupMember<LunchGroup>]
+    [GroupMember<ApplicationRoot>]
     private static object PostLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
     }
     
     [PutEndpoint("lunchs/{id}", "Edit Lunch", "Edits a Lunch Item")]
-    [GroupMember<LunchGroup>]
+    [GroupMember<ApplicationRoot>]
     private static object PutLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
