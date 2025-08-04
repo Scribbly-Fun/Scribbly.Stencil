@@ -10,14 +10,3 @@ public partial class MenuGroup
         applicationRootBuilder.WithTags("Customer");
     }
 }
-//
-// [EndpointGroup("/api", "Root API")]
-// [Configure]
-// public partial class AppRoot
-// {
-//     /// <inheritdoc />
-//     public void Configure(IEndpointConventionBuilder appRootBuilder)
-//     {
-//         appRootBuilder.WithTags("Customer");
-//     }
-// }
