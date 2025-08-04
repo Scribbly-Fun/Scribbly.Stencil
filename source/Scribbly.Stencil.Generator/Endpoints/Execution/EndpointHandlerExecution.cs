@@ -27,6 +27,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
+// -------------> {subject.MemberOf}
+
 {@namespace}
 
 public static partial class {subject.TypeName}

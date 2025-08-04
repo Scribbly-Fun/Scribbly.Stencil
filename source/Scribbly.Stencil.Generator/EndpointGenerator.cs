@@ -107,6 +107,22 @@ public class EndpointGenerator : IIncrementalGenerator
             return null;
         }
         
+        var memberAttributeSymbol = context.SemanticModel.Compilation
+            .GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
+
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition, memberAttributeSymbol))
+            {
+                continue;
+            }
+            if (attribute?.AttributeClass is { TypeArguments.Length: 1 } attrSymbol &&
+                attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            {
+                capture.MemberOf = typeArg.ToDisplayString(); 
+            }
+        }
+
         return (classSymbol, capture);
     }
     
@@ -282,7 +298,8 @@ public class EndpointGenerator : IIncrementalGenerator
             type.metadata.HttpMethod,
             type.metadata.HttpRoute,
             type.metadata.Name,
-            type.metadata.Description);
+            type.metadata.Description,
+            type.metadata.MemberOf);
     }
     
     /// <summary>

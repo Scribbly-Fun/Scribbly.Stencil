@@ -9,6 +9,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
     public string? HttpRoute { get; }
     public string? Name { get; }
     public string? Description { get; }
+    public string? MemberOf { get; set; }
     
     public TargetMethodCaptureContext(
         string? @namespace,
@@ -17,7 +18,8 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         string? httpMethod,
         string? httpRoute,
         string? name,
-        string? description)
+        string? description,
+        string? memberOf = null)
     {
         Namespace = @namespace;
         TypeName = typeName;
@@ -26,6 +28,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         HttpRoute = httpRoute;
         Name = name;
         Description = description;
+        MemberOf = memberOf;
     }
 
     public int CompareTo(TargetMethodCaptureContext? other)
@@ -39,6 +42,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         if (other.HttpRoute != HttpRoute) return -1;
         if (other.Name != Name) return -1;
         if (other.Description != Description) return -1;
+        if (other.MemberOf != MemberOf) return -1;
         
         return 0;
     }
@@ -54,6 +58,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         if (other.HttpRoute != HttpRoute) return false;
         if (other.Name != Name) return false;
         if (other.Description != Description) return false;
+        if (other.MemberOf != MemberOf) return false;
        
         return true;
     }
