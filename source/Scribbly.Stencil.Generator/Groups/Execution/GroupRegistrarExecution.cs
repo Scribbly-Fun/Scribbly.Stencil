@@ -30,9 +30,10 @@ public class GroupRegistrarExecution
         {
             sb.AppendLine();
             sb.Append("//").Append(group.Namespace).Append(group.RoutePrefix).Append('-').Append(group.TypeName).Append('-').Append(group.MemberOf);
+            sb.AppendLine("// MEMBER OF GROUP:").Append(group.MemberOf);
             sb.AppendLine();
         }
 
-        context.AddSource($"Scribbly.Stencil.GroupRegistry.g.cs", sb.ToString());
+        context.AddSource($"Registrar.Scribbly.Stencil.GroupRegistry.g.cs", sb.ToString());
     }
 }

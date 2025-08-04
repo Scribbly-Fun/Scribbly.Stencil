@@ -9,13 +9,14 @@ public partial class ApplicationRoot
     /// <inheritdoc />
     public void Configure(IEndpointConventionBuilder applicationRootBuilder)
     {
-        applicationRootBuilder.AddEndpointFilter<MyFilter>();
+        // applicationRootBuilder.AddEndpointFilter<MyFilter>();
         // -------------------> Add root configuration to all children
     }
 }
+
 [Configure]
-[GroupMember<ApplicationRoot>]
 [EndpointGroup("/lunch", "Manage Lunch Menu")]
+[GroupMemberAttribute<ApplicationRoot>]
 public partial class LunchGroup
 {
     /// <inheritdoc />
@@ -24,16 +25,6 @@ public partial class LunchGroup
         //--- > Enter Optional Code here for Group Configuration
     }
 }
-
-
-
-
-
-
-
-
-
-
 
 [GroupMember<ApplicationRoot>]
 [EndpointGroup("/dinner", "Manage Dinner Menu")]
@@ -47,7 +38,7 @@ public static partial class LunchEndpoints
     // ----------------------------------------> THE CODE USER WILL WRITE
     
     [GetEndpoint("lunch/{id}")]
-    [GroupMember<LunchGroup>]
+    [GroupMemberAttribute<LunchGroup>]
     private static IResult GetLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
@@ -58,7 +49,7 @@ public static partial class LunchEndpoints
             .WithRequestTimeout(TimeSpan.FromSeconds(1))
             .ProducesProblem(400).WithDisplayName("DISPLAY NAME");
     }
-
+    
     [PostEndpoint("lunch/{id}", "Create Lunch", "Creates a new Lunch Item")]
     [GroupMember<LunchGroup>]
     private static IResult PostLunchMenu(HttpContext context, [FromRoute] string id)
