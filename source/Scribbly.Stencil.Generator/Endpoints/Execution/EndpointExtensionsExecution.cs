@@ -5,7 +5,6 @@ namespace Scribbly.Stencil.Endpoints;
 
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Scribbly.Stencil.Endpoints.Context;
 
 public class EndpointExtensionsExecution
 {

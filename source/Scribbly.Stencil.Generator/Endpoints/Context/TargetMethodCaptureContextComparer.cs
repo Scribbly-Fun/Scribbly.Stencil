@@ -1,4 +1,4 @@
-﻿namespace Scribbly.Stencil.Endpoints.Context;
+﻿namespace Scribbly.Stencil.Endpoints;
 
 internal class TargetMethodCaptureContextComparer : IEqualityComparer<TargetMethodCaptureContext>
 {
@@ -29,6 +29,8 @@ internal class TargetMethodCaptureContextComparer : IEqualityComparer<TargetMeth
             hashCode = hashCode * 397 ^ (obj?.MemberOf != null ? obj.MemberOf.GetHashCode() : 0);
             hashCode = hashCode * 397 ^ (obj?.ConfigurationMode != null ? obj.ConfigurationMode.GetHashCode() : 0);
             hashCode = hashCode * 397 ^ (obj?.GroupMode != null ? obj.GroupMode.GetHashCode() : 0);
+            hashCode = hashCode * 397 ^ (obj?.IsEndpointGroup != null ? obj.IsEndpointGroup.GetHashCode() : 0);
+            
             return hashCode;
         }
     }

@@ -23,7 +23,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
     public DeclarationMode ConfigurationMode { get; set; }
     public DeclarationMode GroupMode { get; set; }
 
-    public bool EnclosedByGroup { get; set; }
+    public bool IsEndpointGroup { get; set; }
     public bool IsConfigurable => ConfigurationMode is DeclarationMode.ClassDeclaration or DeclarationMode.MethodDeclaration;
     
     public TargetMethodCaptureContext(
@@ -36,7 +36,8 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         string? description,
         string? memberOf = null,
         DeclarationMode configurationMode = DeclarationMode.Na,
-        DeclarationMode groupMode = DeclarationMode.Na)
+        DeclarationMode groupMode = DeclarationMode.Na,
+        bool isEndpointGroup = false)
     {
         Namespace = @namespace;
         TypeName = typeName;
@@ -48,6 +49,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         MemberOf = memberOf;
         ConfigurationMode = configurationMode;
         GroupMode = groupMode;
+        IsEndpointGroup = isEndpointGroup;
     }
 
     public int CompareTo(TargetMethodCaptureContext? other)
@@ -64,6 +66,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         if (other.MemberOf != MemberOf) return -1;
         if (other.ConfigurationMode != ConfigurationMode) return -1;
         if (other.GroupMode != GroupMode) return -1;
+        if (other.IsEndpointGroup != IsEndpointGroup) return -1;
         
         return 0;
     }
@@ -82,6 +85,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         if (other.MemberOf != MemberOf) return false;
         if (other.ConfigurationMode != ConfigurationMode) return false;
         if (other.GroupMode != GroupMode) return false;
+        if (other.IsEndpointGroup != IsEndpointGroup) return false;
        
         return true;
     }

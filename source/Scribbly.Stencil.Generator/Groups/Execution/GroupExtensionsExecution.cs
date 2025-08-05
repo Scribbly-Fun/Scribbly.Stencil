@@ -2,7 +2,6 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Scribbly.Stencil.Endpoints;
-using Scribbly.Stencil.Endpoints.Context;
 using Scribbly.Stencil.Endpoints.Factories;
 
 namespace Scribbly.Stencil.Groups;

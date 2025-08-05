@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Scribbly.Stencil.Attributes.Endpoints;
 using Scribbly.Stencil.Endpoints;
-using Scribbly.Stencil.Endpoints.Context;
 using Scribbly.Stencil.Types.Attributes;
 
 namespace Scribbly.Stencil;
@@ -41,27 +40,23 @@ public partial class EndpointGenerator
         if (classSymbol is null)
             return null;
 
-        var getEndpointAttr = methodSymbol.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == GetEndpointAttribute.TypeFullName);
-
-        var postEndpointAttr = methodSymbol.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == PostEndpointAttribute.TypeFullName);
-
-        var putEndpointAttr = methodSymbol.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == PutEndpointAttribute.TypeFullName);
-
-        var deleteEndpointAttr = methodSymbol.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == DeleteEndpointAttribute.TypeFullName);
+        var httpVerbEndpointAttr = methodSymbol
+            .GetAttributes()
+            .FirstOrDefault(attr => 
+                attr.AttributeClass?.ToDisplayString() == GetEndpointAttribute.TypeFullName ||
+                attr.AttributeClass?.ToDisplayString() == PostEndpointAttribute.TypeFullName ||
+                attr.AttributeClass?.ToDisplayString() == PutEndpointAttribute.TypeFullName ||
+                attr.AttributeClass?.ToDisplayString() == DeleteEndpointAttribute.TypeFullName);
         
-        var capture = (getEndpointAttr, postEndpointAttr, putEndpointAttr, deleteEndpointAttr) switch
+        var capture = httpVerbEndpointAttr switch
         {
-            (null, null, null, null) => null,
-            (not null, null, null, null) => CaptureGetContext(classSymbol, methodSymbol, getEndpointAttr),
-            (null, not null, null, null) => CapturePostContext(classSymbol, methodSymbol, postEndpointAttr),
-            (null, null, not null, null) => CapturePutContext(classSymbol, methodSymbol, putEndpointAttr),
-            (null, null, null, not null) => CaptureDeleteContext(classSymbol, methodSymbol, deleteEndpointAttr),
+            {  AttributeClass: { Name: GetEndpointAttribute.TypeName }} => CaptureGetContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
+            {  AttributeClass: { Name: PostEndpointAttribute.TypeName }}  => CapturePostContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
+            {  AttributeClass: { Name: PutEndpointAttribute.TypeName }}  => CapturePutContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
+            {  AttributeClass: { Name: DeleteEndpointAttribute.TypeName }}  => CaptureDeleteContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
             _ => null
         };
+        
         if (capture is null)
         {
             return null;
