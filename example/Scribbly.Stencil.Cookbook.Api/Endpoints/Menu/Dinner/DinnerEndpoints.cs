@@ -3,22 +3,17 @@ using Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Dinner;
 
 namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Dinner;
 
-public static partial class DinnerEndpoints
+public partial class DinnerEndpoints
 {
 
     // ----------------------------------------> THE CODE USER WILL WRITE
     
     [GetEndpoint("/{id}", "Gets Dinner", "Queries a new Dinner Item")]
     [GroupMember<DinnerGroup>]
+    [Configure]
     private static IResult GetDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
-    }
-    static partial void ConfigureGetDinnerMenu(IEndpointConventionBuilder builder)
-    {
-        builder
-            .WithRequestTimeout(TimeSpan.FromSeconds(1))
-            .ProducesProblem(400).WithDisplayName("DISPLAY NAME");
     }
     
     [PostEndpoint("/{id}", "Create Dinner", "Creates a new Dinner Item")]
@@ -34,4 +29,11 @@ public static partial class DinnerEndpoints
     {
         return new { id = id };
     }
+
+    /// <inheritdoc />
+    public void ConfigureGetDinnerMenu(IEndpointConventionBuilder getDinnerMenuBuilder)
+    {
+        
+    }
+    
 }

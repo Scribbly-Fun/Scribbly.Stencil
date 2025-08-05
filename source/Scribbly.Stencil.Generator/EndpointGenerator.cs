@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Scribbly.Stencil.Attributes.Endpoints;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Endpoints.Context;
-using Scribbly.Stencil.Endpoints.Execution;
 using Scribbly.Stencil.Groups;
 using Scribbly.Stencil.Types.Attributes;
 
@@ -24,26 +23,31 @@ public class EndpointGenerator : IIncrementalGenerator
             .Select(static (type, _) => TransformHandlerType(type!.Value))
             .WithComparer(TargetMethodCaptureContextComparer.Instance);
         
+        var baseEndpointProvider = context.SyntaxProvider
+            .CreateSyntaxProvider(HandlerSyntacticPredicate, HandlerSemanticTransform)
+            .Where(static (type) => type.HasValue)
+            .Select(static (type, _) => TransformHandlerType(type!.Value))
+            .WithComparer(TargetMethodCaptureContextComparer.Instance);
+        
         IncrementalValuesProvider<TargetGroupCaptureContext> routeGroupProvider = context.SyntaxProvider
             .CreateSyntaxProvider(GroupSyntacticPredicate, GroupSemanticTransform)
             .Where(static (type) => type.HasValue)
             .Select(static (type, _) => TransformGroupType(type!.Value))
             .WithComparer(TargetGroupCaptureContextComparer.Instance);
-
-        var collectedEndpoints = endpointProvider.Collect();
-        var collectedGroups = routeGroupProvider.Collect();
-
-        var routeTree = collectedEndpoints.Combine(collectedGroups);
-
+        
         context.RegisterSourceOutput(endpointProvider, EndpointHandlerExecution.Generate);
+        context.RegisterSourceOutput(endpointProvider, EndpointExtensionsExecution.Generate);
+        
+        var collectedEndpoints = endpointProvider.Collect();
         context.RegisterSourceOutput(collectedEndpoints, EndpointRegistrarExecution.Generate);
         
         context.RegisterSourceOutput(routeGroupProvider, GroupBuilderExecution.Generate);
         
         var groupedEndpoints = routeGroupProvider.Combine(collectedEndpoints);
-        
         context.RegisterSourceOutput(groupedEndpoints, GroupExtensionsExecution.Generate);
         
+        var collectedGroups = routeGroupProvider.Collect();
+        var routeTree = collectedEndpoints.Combine(collectedGroups);
         context.RegisterSourceOutput(routeTree, GroupRegistrarExecution.Generate);
     }
     
@@ -98,7 +102,10 @@ public class EndpointGenerator : IIncrementalGenerator
 
         var deleteEndpointAttr = methodSymbol.GetAttributes()
             .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == DeleteEndpointAttribute.TypeFullName);
-
+        
+        var configureAtt = methodSymbol.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName);
+        
         var capture = (getEndpointAttr, postEndpointAttr, putEndpointAttr, deleteEndpointAttr) switch
         {
             (null, null, null, null) => null,
@@ -128,7 +135,10 @@ public class EndpointGenerator : IIncrementalGenerator
                 capture.MemberOf = typeArg.ToDisplayString(); 
             }
         }
-
+        
+        capture.IsConfigurable = methodSymbol.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null;
+        
         return (classSymbol, capture);
     }
     
@@ -196,7 +206,7 @@ public class EndpointGenerator : IIncrementalGenerator
         if (!candidate.Modifiers.Any(SyntaxKind.PartialKeyword))
             return false;
 
-        if (!candidate.Modifiers.Any(SyntaxKind.StaticKeyword))
+        if (candidate.Modifiers.Any(SyntaxKind.StaticKeyword))
             return false;
 
         return true;
@@ -305,7 +315,8 @@ public class EndpointGenerator : IIncrementalGenerator
             type.metadata.HttpRoute,
             type.metadata.Name,
             type.metadata.Description,
-            type.metadata.MemberOf);
+            type.metadata.MemberOf,
+            type.metadata.IsConfigurable);
     }
     
     /// <summary>

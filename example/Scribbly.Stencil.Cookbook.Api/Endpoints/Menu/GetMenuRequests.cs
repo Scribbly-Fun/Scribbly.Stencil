@@ -2,7 +2,7 @@
 
 namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu;
 
-public static partial class GetMenuRequests
+public partial class GetMenuRequests
 {
     [GetEndpoint("/", "GetMenus", "Queries a new Lunch Item")]
     [GroupMember<MenuGroup>]
