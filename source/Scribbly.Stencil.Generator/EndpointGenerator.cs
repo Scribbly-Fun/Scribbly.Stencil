@@ -39,7 +39,10 @@ public class EndpointGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(collectedEndpoints, EndpointRegistrarExecution.Generate);
         
         context.RegisterSourceOutput(routeGroupProvider, GroupBuilderExecution.Generate);
-        context.RegisterSourceOutput(routeGroupProvider, GroupExtensionsExecution.Generate);
+        
+        var groupedEndpoints = routeGroupProvider.Combine(collectedEndpoints);
+        
+        context.RegisterSourceOutput(groupedEndpoints, GroupExtensionsExecution.Generate);
         
         context.RegisterSourceOutput(routeTree, GroupRegistrarExecution.Generate);
     }
