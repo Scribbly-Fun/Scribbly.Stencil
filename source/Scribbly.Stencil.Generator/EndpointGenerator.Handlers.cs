@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Scribbly.Stencil.Attributes.Endpoints;
+using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Endpoints.Context;
 using Scribbly.Stencil.Types.Attributes;
 
@@ -31,7 +32,7 @@ public partial class EndpointGenerator
 
         if (methodSymbol is null)
             return null;
-
+        
         var classDeclaration = Extensions.SyntaxNodeExtensions.GetParent<ClassDeclarationSyntax>(methodDeclaration);
         if (!ValidateHandlerCandidateModifiers(classDeclaration))
             return null;
@@ -51,10 +52,7 @@ public partial class EndpointGenerator
 
         var deleteEndpointAttr = methodSymbol.GetAttributes()
             .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == DeleteEndpointAttribute.TypeFullName);
-
-        var configureAtt = methodSymbol.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName);
-
+        
         var capture = (getEndpointAttr, postEndpointAttr, putEndpointAttr, deleteEndpointAttr) switch
         {
             (null, null, null, null) => null,
@@ -71,6 +69,22 @@ public partial class EndpointGenerator
 
         var memberAttributeSymbol = context.SemanticModel.Compilation
             .GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
+        
+        foreach (var attribute in classSymbol.GetAttributes())
+        {
+            if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition,
+                    memberAttributeSymbol))
+            {
+                continue;
+            }
+
+            if (attribute?.AttributeClass is { TypeArguments.Length: 1 } attrSymbol &&
+                attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            {
+                capture.MemberOf = typeArg.ToDisplayString();
+                capture.GroupMode = TargetMethodCaptureContext.DeclarationMode.ClassDeclaration;
+            }
+        }
 
         foreach (var attribute in methodSymbol.GetAttributes())
         {
@@ -84,11 +98,18 @@ public partial class EndpointGenerator
                 attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
             {
                 capture.MemberOf = typeArg.ToDisplayString();
+                capture.GroupMode = TargetMethodCaptureContext.DeclarationMode.MethodDeclaration;
             }
         }
-
-        capture.IsConfigurable = methodSymbol.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null;
+        
+        if (classSymbol.GetAttributes() .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null)
+        {
+            capture.ConfigurationMode = TargetMethodCaptureContext.DeclarationMode.ClassDeclaration;
+        }
+        else if(methodSymbol.GetAttributes() .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null)
+        {
+            capture.ConfigurationMode = TargetMethodCaptureContext.DeclarationMode.MethodDeclaration;
+        }
 
         return (classSymbol, capture);
     }
@@ -106,7 +127,7 @@ public partial class EndpointGenerator
 
         return true;
     }
-
+    
     private static (string? route, string? name, string? description) GetAttributeProperties(
         AttributeData getEndpointAttr)
     {
@@ -202,6 +223,7 @@ public partial class EndpointGenerator
             type.metadata.Name,
             type.metadata.Description,
             type.metadata.MemberOf,
-            type.metadata.IsConfigurable);
+            type.metadata.ConfigurationMode,
+            type.metadata.GroupMode);
     }
 }

@@ -44,7 +44,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
-// -------------> {subject.MemberOf}
+// -------------> PARENT:{subject.MemberOf} GROUP: {subject.GroupMode} CONFIG: {subject.ConfigurationMode}
 
 {@namespace}
 

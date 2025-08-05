@@ -1,7 +1,17 @@
-﻿namespace Scribbly.Stencil.Endpoints.Context;
+﻿namespace Scribbly.Stencil.Endpoints;
 
 public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext>, IEquatable<TargetMethodCaptureContext>
 {
+    /// <summary>
+    /// Tells us how we determined something.  If it was declared on the method or the class.
+    /// </summary>
+    public enum DeclarationMode
+    {
+        Na,
+        ClassDeclaration,
+        MethodDeclaration
+    }
+    
     public string? Namespace { get; }
     public string? TypeName { get; }
     public string? MethodName { get; }
@@ -10,9 +20,11 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
     public string? Name { get; }
     public string? Description { get; }
     public string? MemberOf { get; set; }
-    
-    public bool IsInsideGroup { get; }
-    public bool IsConfigurable { get; set; }
+    public DeclarationMode ConfigurationMode { get; set; }
+    public DeclarationMode GroupMode { get; set; }
+
+    public bool EnclosedByGroup { get; set; }
+    public bool IsConfigurable => ConfigurationMode is DeclarationMode.ClassDeclaration or DeclarationMode.MethodDeclaration;
     
     public TargetMethodCaptureContext(
         string? @namespace,
@@ -23,8 +35,8 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         string? name,
         string? description,
         string? memberOf = null,
-        bool isConfigurable = false,
-        bool isInsideGroup = false)
+        DeclarationMode configurationMode = DeclarationMode.Na,
+        DeclarationMode groupMode = DeclarationMode.Na)
     {
         Namespace = @namespace;
         TypeName = typeName;
@@ -34,8 +46,8 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         Name = name;
         Description = description;
         MemberOf = memberOf;
-        IsConfigurable = isConfigurable;
-        IsInsideGroup = isInsideGroup;
+        ConfigurationMode = configurationMode;
+        GroupMode = groupMode;
     }
 
     public int CompareTo(TargetMethodCaptureContext? other)
@@ -50,8 +62,8 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         if (other.Name != Name) return -1;
         if (other.Description != Description) return -1;
         if (other.MemberOf != MemberOf) return -1;
-        if (other.IsConfigurable != IsConfigurable) return -1;
-        if (other.IsInsideGroup != IsInsideGroup) return -1;
+        if (other.ConfigurationMode != ConfigurationMode) return -1;
+        if (other.GroupMode != GroupMode) return -1;
         
         return 0;
     }
@@ -68,8 +80,8 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         if (other.Name != Name) return false;
         if (other.Description != Description) return false;
         if (other.MemberOf != MemberOf) return false;
-        if (other.IsConfigurable != IsConfigurable) return false;
-        if (other.IsInsideGroup != IsInsideGroup) return false;
+        if (other.ConfigurationMode != ConfigurationMode) return false;
+        if (other.GroupMode != GroupMode) return false;
        
         return true;
     }
