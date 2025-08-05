@@ -11,6 +11,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
     public string? Description { get; }
     public string? MemberOf { get; set; }
     
+    public bool IsInsideGroup { get; }
     public bool IsConfigurable { get; set; }
     
     public TargetMethodCaptureContext(
@@ -22,7 +23,8 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         string? name,
         string? description,
         string? memberOf = null,
-        bool isConfigurable = false)
+        bool isConfigurable = false,
+        bool isInsideGroup = false)
     {
         Namespace = @namespace;
         TypeName = typeName;
@@ -33,6 +35,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         Description = description;
         MemberOf = memberOf;
         IsConfigurable = isConfigurable;
+        IsInsideGroup = isInsideGroup;
     }
 
     public int CompareTo(TargetMethodCaptureContext? other)
@@ -48,6 +51,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         if (other.Description != Description) return -1;
         if (other.MemberOf != MemberOf) return -1;
         if (other.IsConfigurable != IsConfigurable) return -1;
+        if (other.IsInsideGroup != IsInsideGroup) return -1;
         
         return 0;
     }
@@ -65,6 +69,7 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         if (other.Description != Description) return false;
         if (other.MemberOf != MemberOf) return false;
         if (other.IsConfigurable != IsConfigurable) return false;
+        if (other.IsInsideGroup != IsInsideGroup) return false;
        
         return true;
     }
