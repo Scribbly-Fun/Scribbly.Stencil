@@ -3,7 +3,7 @@ using Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Dinner;
 
 namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Dinner;
 
-public static partial class DinnerEndpoints
+public partial class DinnerEndpoints
 {
 
     // ----------------------------------------> THE CODE USER WILL WRITE

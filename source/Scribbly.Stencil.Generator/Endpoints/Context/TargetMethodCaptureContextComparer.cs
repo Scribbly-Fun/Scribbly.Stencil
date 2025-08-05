@@ -27,6 +27,7 @@ internal class TargetMethodCaptureContextComparer : IEqualityComparer<TargetMeth
             hashCode = hashCode * 397 ^ (obj?.Name != null ? obj.Name.GetHashCode() : 0);
             hashCode = hashCode * 397 ^ (obj?.Description != null ? obj.Description.GetHashCode() : 0);
             hashCode = hashCode * 397 ^ (obj?.MemberOf != null ? obj.MemberOf.GetHashCode() : 0);
+            hashCode = hashCode * 397 ^ (obj?.IsConfigurable != null ? obj.IsConfigurable.GetHashCode() : 0);
             
             return hashCode;
         }

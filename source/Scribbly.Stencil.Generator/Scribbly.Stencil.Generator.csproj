@@ -16,7 +16,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Endpoints\Types\" />
       <Folder Include="Groups\Types\" />
       <Folder Include="Shared\Types\Interfaces\" />
     </ItemGroup>

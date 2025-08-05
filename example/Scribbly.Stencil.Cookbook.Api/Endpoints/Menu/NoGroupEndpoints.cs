@@ -3,7 +3,7 @@
 namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu;
 
 
-public static partial class NoGroupEndpoints
+public partial class NoGroupEndpoints
 {
 
     // ----------------------------------------> THE CODE USER WILL WRITE

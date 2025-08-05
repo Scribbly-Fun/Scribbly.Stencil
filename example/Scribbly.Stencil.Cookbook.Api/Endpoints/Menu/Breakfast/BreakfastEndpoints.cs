@@ -2,7 +2,7 @@
 
 namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Breakfast;
 
-public static partial class BreakfastEndpoints
+public partial class BreakfastEndpoints
 {
 
     // ----------------------------------------> THE CODE USER WILL WRITE
@@ -12,12 +12,6 @@ public static partial class BreakfastEndpoints
     private static IResult GetBreakfastMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
-    }
-    static partial void ConfigureGetBreakfastMenu(IEndpointConventionBuilder builder)
-    {
-        builder
-            .WithRequestTimeout(TimeSpan.FromSeconds(1))
-            .ProducesProblem(400).WithDisplayName("DISPLAY NAME");
     }
     
     [PostEndpoint("/{id}", "Create Breakfast", "Creates a new Breakfast Item")]
@@ -32,5 +26,23 @@ public static partial class BreakfastEndpoints
     private static object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
+    }
+
+    /// <inheritdoc />
+    public void ConfigureGetBreakfastMenu(IEndpointConventionBuilder getBreakfastMenuBuilder)
+    {
+        Console.WriteLine();
+    }
+
+    /// <inheritdoc />
+    public void ConfigurePutBreakfastMenu(IEndpointConventionBuilder putBreakfastMenuBuilder)
+    {
+        Console.WriteLine();
+    }
+
+    /// <inheritdoc />
+    public void ConfigurePostBreakfastMenu(IEndpointConventionBuilder postBreakfastMenuBuilder)
+    {
+        Console.WriteLine();
     }
 }

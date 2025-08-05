@@ -2,7 +2,7 @@
 
 namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Lunch;
 
-public static partial class LunchEndpoints
+public partial class LunchEndpoints
 {
 
     // ----------------------------------------> THE CODE USER WILL WRITE

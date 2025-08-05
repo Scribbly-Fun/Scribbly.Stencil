@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Scribbly.Stencil.Groups;
 
 namespace Scribbly.Stencil;
 
@@ -14,7 +13,8 @@ public class InterfaceGenerator : IIncrementalGenerator
 
     private static void PostInitializationCallback(IncrementalGeneratorPostInitializationContext context)
     {
-        context.AddSource(GroupMarkerInterface.FileName, GroupMarkerInterface.Value);
-        context.AddSource(ConfigureMarkerInterface.FileName, ConfigureMarkerInterface.Value);
+        context.AddSource(Groups.GroupMarkerInterface.FileName, Groups.GroupMarkerInterface.Value);
+        context.AddSource(Groups.ConfigureMarkerInterface.FileName, Groups.ConfigureMarkerInterface.Value);
+        context.AddSource(Endpoints.ConfigureMarkerInterface.FileName, Endpoints.ConfigureMarkerInterface.Value);
     }
 }
