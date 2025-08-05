@@ -39,9 +39,15 @@ public partial class EndpointGenerator
         var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
         if (classSymbol is null)
             return null;
+        
+        var methodAttributes = methodSymbol.GetAttributes();
 
-        var httpVerbEndpointAttr = methodSymbol
-            .GetAttributes()
+        if (methodAttributes.Length == 0)
+        {
+            return null;
+        }
+
+        var httpVerbEndpointAttr = methodAttributes
             .FirstOrDefault(attr => 
                 attr.AttributeClass?.ToDisplayString() == GetEndpointAttribute.TypeFullName ||
                 attr.AttributeClass?.ToDisplayString() == PostEndpointAttribute.TypeFullName ||
@@ -81,7 +87,7 @@ public partial class EndpointGenerator
             }
         }
 
-        foreach (var attribute in methodSymbol.GetAttributes())
+        foreach (var attribute in methodAttributes)
         {
             if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition,
                     memberAttributeSymbol))
