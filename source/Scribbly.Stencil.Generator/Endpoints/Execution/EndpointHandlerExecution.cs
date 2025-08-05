@@ -43,7 +43,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
-// -------------> PARENT:{subject.MemberOf} 
+// -------------> PARENT: {subject.MemberOf} 
 // -------------> GROUP_MODE: {subject.GroupMode}  
 // -------------> IS_GROUP: {subject.IsEndpointGroup}  
 // -------------> CONFIG_MODE: {subject.ConfigurationMode}
@@ -93,7 +93,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
-// -------------> {subject.MemberOf}
+// -------------> PARENT: {subject.MemberOf} 
+// -------------> GROUP_MODE: {subject.GroupMode}  
+// -------------> IS_GROUP: {subject.IsEndpointGroup}  
+// -------------> CONFIG_MODE: {subject.ConfigurationMode}
 
 {@namespace}
 

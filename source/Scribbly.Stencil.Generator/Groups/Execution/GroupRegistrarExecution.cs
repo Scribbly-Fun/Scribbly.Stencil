@@ -43,6 +43,8 @@ public class GroupRegistrarExecution
                                      using Microsoft.AspNetCore.Routing;
                                      
                                      {{GroupUsingStatements(groups, endpointsWithoutGroup)}}
+                                     
+                                     namespace Scribbly.Stencil;
 
                                      public static class GroupRegistrationExtensions
                                      {
@@ -89,6 +91,8 @@ public class GroupRegistrarExecution
                                      using Microsoft.AspNetCore.Routing;
                                      
                                      {{GroupUsingStatements(groups, endpointsWithoutGroup)}}
+                                     
+                                     namespace Scribbly.Stencil;
 
                                      public static class GroupRegistrationExtensions
                                      {
