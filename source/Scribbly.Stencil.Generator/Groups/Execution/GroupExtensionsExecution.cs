@@ -1,4 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using System.Text;
+using Microsoft.CodeAnalysis;
+using Scribbly.Stencil.Endpoints.Context;
 
 namespace Scribbly.Stencil.Groups;
 
@@ -8,9 +11,20 @@ public static class GroupExtensionsExecution
     /// Writes the captured information about the handle method as a Minimal API endpoint.
     /// </summary>
     /// <param name="context">Generator Context</param>
-    /// <param name="subject">Captured Method Context</param>
-    public static void Generate(SourceProductionContext context, TargetGroupCaptureContext subject)
+    /// <param name="capture">Captured Group combined with the endpoints Context</param>
+    public static void Generate(SourceProductionContext context, (TargetGroupCaptureContext Group, ImmutableArray<TargetMethodCaptureContext> Endpoints) capture)
     {
+        var subject = capture.Group;
+
+        var endpoints = capture.Endpoints
+            .Where(e => e.MemberOf == $"{subject.Namespace}.{subject.TypeName}")
+            .ToList();
+
+        if (!endpoints.Any())
+        {
+            return;
+        }
+        
         var @namespace = subject.Namespace is not null 
             ? $"namespace {subject.Namespace};"
             : string.Empty;
@@ -27,8 +41,10 @@ public static class GroupExtensionsExecution
               using Microsoft.AspNetCore.Mvc;
               using Microsoft.AspNetCore.Routing;
 
-              {{@namespace}}
+              {{CreateUsingStatements(subject, endpoints)}}
 
+              {{@namespace}}
+              
               public static class {{subject.TypeName}}Extensions
               {
                   /// <summary>
@@ -39,7 +55,7 @@ public static class GroupExtensionsExecution
                       var scribblyGroup = new global::{{subject.Namespace}}.{{subject.TypeName}}();
 
                       var routeGroup = scribblyGroup.Map{{subject.TypeName}}(builder);
-                      
+                      {{CreateEndpointMapping(endpoints)}}
                       return routeGroup;
                   }
               }
@@ -48,4 +64,28 @@ public static class GroupExtensionsExecution
         context.AddSource($"Group.{groupName}.Extensions.g.cs", builderExtensionCode);
     }
 
+    private static string CreateUsingStatements(TargetGroupCaptureContext groups, List<TargetMethodCaptureContext> endpoints)
+    {
+        var builder = new StringBuilder();
+        var namespaces = new List<string?>(endpoints.Count() + 1) { groups.Namespace };
+
+        namespaces.AddRange(endpoints.Select(e => e.Namespace));
+        
+        foreach (var name in namespaces.Distinct())
+        {
+            builder.AppendLine($"using {name};");
+        }
+        return builder.ToString();
+    }
+    
+    private static string CreateEndpointMapping(List<TargetMethodCaptureContext> endpoints)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine();
+        foreach (var endpoint in endpoints)
+        {
+            sb.AppendLine($"        routeGroup.Map{endpoint.TypeName}{endpoint.MethodName}Endpoint();");
+        }
+        return  sb.ToString();
+    }
 }
