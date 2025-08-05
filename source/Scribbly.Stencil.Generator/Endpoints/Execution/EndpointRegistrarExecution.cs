@@ -2,6 +2,7 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Scribbly.Stencil.Endpoints.Context;
+using Scribbly.Stencil.Endpoints.Factories;
 
 namespace Scribbly.Stencil.Endpoints;
 
@@ -42,11 +43,10 @@ public static class ScribblyEndpointRegistry
     /// </summary>
     public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapScribblyEndpoints(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
     {
-        // TODO: Insert Endpoint Group Captured into the Map Method Name, These endpoints should be passed the correct endpoint group build or the root builder if not specified.
 ");
         foreach (var endpoint in endpoints.Distinct(TargetMethodCaptureContextComparer.Instance))
         {
-            sb.AppendLine($@"        builder.Map{endpoint.TypeName}{endpoint.MethodName}Endpoint();");
+            sb.Append($@"        builder.").CreateEndpointMappingMethodInvocation(subject: endpoint).AppendLine(); 
         }
 
         sb.AppendLine(@"        return builder;

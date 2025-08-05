@@ -1,4 +1,5 @@
 ﻿using System.Dynamic;
+using Scribbly.Stencil.Endpoints.Factories;
 
 namespace Scribbly.Stencil.Endpoints;
 
@@ -38,11 +39,11 @@ public class EndpointExtensionsExecution
                   /// <summary>
                   /// Maps the endpoint {{subject.TypeName}} to an endpoint builder {{subject.MemberOf}} with the route {{subject.HttpMethod}} {{subject.HttpRoute}} 
                   /// </summary>
-                  public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{{subject.TypeName}}(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
+                  public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{{subject.TypeName}}{{subject.MethodName}}(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
                   {
                       var scribblyEndpoint = new global::{{subject.Namespace}}.{{subject.TypeName}}();
 
-                      var endpointConventionBuilder = scribblyEndpoint.Map{{subject.TypeName}}(builder);
+                      var endpointConventionBuilder = scribblyEndpoint.{{subject.CreateEndpointMappingMethodName()}}(builder);
 
                       {{CreateConfigureInvocation(subject)}}
                       return builder;

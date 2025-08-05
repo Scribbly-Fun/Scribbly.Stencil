@@ -17,4 +17,16 @@ public partial class GetMenuRequests
     {
         return Results.Ok(id);
     }
+
+    /// <inheritdoc />
+    public void ConfigureGetMenu(IEndpointConventionBuilder getMenuBuilder)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc />
+    public void ConfigureGetMenus(IEndpointConventionBuilder getMenusBuilder)
+    {
+        throw new NotImplementedException();
+    }
 }

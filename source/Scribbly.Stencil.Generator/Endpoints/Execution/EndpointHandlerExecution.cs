@@ -47,7 +47,7 @@ public partial class {subject.TypeName}: global::{subject.Namespace}.{subject.Ty
     /// <summary>
     /// Maps the method {subject.MethodName} to an Endpoint group with the Route {subject.HttpMethod?.ToUpper()} {subject.HttpRoute}.
     /// </summary>
-    public global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{subject.TypeName}{subject.MethodName}Endpoint(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
+    public global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{subject.TypeName}{subject.MethodName}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
     {{
         var endpoint = builder.Map{subject.HttpMethod}(""{subject.HttpRoute}"", {subject.MethodName});
 

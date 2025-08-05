@@ -13,13 +13,7 @@ public partial class NoGroupEndpoints
     {
         return Results.Ok(id);
     }
-    static partial void ConfigureGetLunchMenu(IEndpointConventionBuilder builder)
-    {
-        builder
-            .WithRequestTimeout(TimeSpan.FromSeconds(1))
-            .ProducesProblem(400).WithDisplayName("DISPLAY NAME");
-    }
-    
+
     [PostEndpoint("no-group/{id}")]
     private static object PostLunchMenu(HttpContext context, [FromRoute] string id)
     {
@@ -30,5 +24,23 @@ public partial class NoGroupEndpoints
     private static object PutLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
+    }
+
+    /// <inheritdoc />
+    public void ConfigureGetLunchMenu(IEndpointConventionBuilder getLunchMenuBuilder)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc />
+    public void ConfigurePostLunchMenu(IEndpointConventionBuilder postLunchMenuBuilder)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc />
+    public void ConfigurePutLunchMenu(IEndpointConventionBuilder putLunchMenuBuilder)
+    {
+        throw new NotImplementedException();
     }
 }

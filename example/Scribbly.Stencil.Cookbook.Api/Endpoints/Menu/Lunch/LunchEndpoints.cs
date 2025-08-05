@@ -13,12 +13,6 @@ public partial class LunchEndpoints
     {
         return Results.Ok(id);
     }
-    static partial void ConfigureGetLunchMenu(IEndpointConventionBuilder builder)
-    {
-        builder
-            .WithRequestTimeout(TimeSpan.FromSeconds(1))
-            .ProducesProblem(400).WithDisplayName("DISPLAY NAME");
-    }
     
     [PostEndpoint("/{id}", "Create Lunch", "Creates a new Lunch Item")]
     [GroupMember<LunchGroup>]
@@ -32,5 +26,23 @@ public partial class LunchEndpoints
     private static object PutLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
+    }
+
+    /// <inheritdoc />
+    public void ConfigurePutLunchMenu(IEndpointConventionBuilder putLunchMenuBuilder)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc />
+    public void ConfigureGetLunchMenu(IEndpointConventionBuilder getLunchMenuBuilder)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc />
+    public void ConfigurePostLunchMenu(IEndpointConventionBuilder postLunchMenuBuilder)
+    {
+        throw new NotImplementedException();
     }
 }

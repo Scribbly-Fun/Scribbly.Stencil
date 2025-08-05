@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Scribbly.Stencil.Endpoints.Context;
+using Scribbly.Stencil.Endpoints.Factories;
 
 namespace Scribbly.Stencil.Groups;
 
@@ -23,7 +24,7 @@ public class GroupRegistrarExecution
     {
         var (endpoints, groups) = tree;
         
-        var endpointsWithoutGroup = endpoints.Where(e => e.MemberOf == null);
+        var endpointsWithoutGroup = endpoints.Where(e => e.MemberOf == null).ToList();
         
         var groupMap = groups.ToDictionary(
             g => $"{g.Namespace}.{g.TypeName}",
@@ -52,7 +53,7 @@ public class GroupRegistrarExecution
         sb.AppendLine();
         foreach (var targetMethodCaptureContext in endpointsWithoutGroup)
         {
-            sb.Append("        app.Map").Append(targetMethodCaptureContext.TypeName).Append(targetMethodCaptureContext.MethodName).Append("Endpoint();");
+            sb.Append("        app.").CreateEndpointMappingMethodInvocation(subject: targetMethodCaptureContext);
             sb.AppendLine();
         }
         
@@ -98,7 +99,7 @@ public class GroupRegistrarExecution
         sb.AppendLine();
         foreach (var targetMethodCaptureContext in endpoints.Where(e => e.MemberOf == null))
         {
-            sb.Append("        app.Map").Append(targetMethodCaptureContext.TypeName).Append(targetMethodCaptureContext.MethodName).Append("Endpoint();");
+            sb.Append("        app.Map").Append(targetMethodCaptureContext.TypeName).Append(targetMethodCaptureContext.MethodName).Append("();");
             sb.AppendLine();
         }
         

@@ -14,12 +14,6 @@ public partial class DinnerEndpoints
     {
         return Results.Ok(id);
     }
-    static partial void ConfigureGetDinnerMenu(IEndpointConventionBuilder builder)
-    {
-        builder
-            .WithRequestTimeout(TimeSpan.FromSeconds(1))
-            .ProducesProblem(400).WithDisplayName("DISPLAY NAME");
-    }
     
     [PostEndpoint("/{id}", "Create Dinner", "Creates a new Dinner Item")]
     [GroupMember<DinnerGroup>]
@@ -33,5 +27,23 @@ public partial class DinnerEndpoints
     private static object PutDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
+    }
+
+    /// <inheritdoc />
+    public void ConfigureGetDinnerMenu(IEndpointConventionBuilder getDinnerMenuBuilder)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc />
+    public void ConfigurePostDinnerMenu(IEndpointConventionBuilder postDinnerMenuBuilder)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc />
+    public void ConfigurePutDinnerMenu(IEndpointConventionBuilder putDinnerMenuBuilder)
+    {
+        throw new NotImplementedException();
     }
 }
