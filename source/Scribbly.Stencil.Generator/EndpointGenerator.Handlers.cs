@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Scribbly.Stencil.Attributes.Endpoints;
 using Scribbly.Stencil.Endpoints;
+using Scribbly.Stencil.Groups;
 using Scribbly.Stencil.Types.Attributes;
 
 namespace Scribbly.Stencil;
@@ -70,44 +71,52 @@ public partial class EndpointGenerator
 
         var memberAttributeSymbol = context.SemanticModel.Compilation
             .GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
+
+        var classAttributes = classSymbol.GetAttributes();
         
-        foreach (var attribute in classSymbol.GetAttributes())
+        capture.IsEndpointGroup = classAttributes
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == EndpointGroupAttribute.TypeFullName) != null;
+
+        if (!capture.IsEndpointGroup)
         {
-            if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition,
-                    memberAttributeSymbol))
+            foreach (var attribute in classAttributes)
             {
-                continue;
+                if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition,
+                        memberAttributeSymbol))
+                {
+                    continue;
+                }
+
+                if (attribute?.AttributeClass is { TypeArguments.Length: 1 } attrSymbol &&
+                    attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+                {
+                    capture.MemberOf = typeArg.ToDisplayString();
+                    capture.GroupMode = TargetMethodCaptureContext.DeclarationMode.ClassDeclaration;
+                }
             }
 
-            if (attribute?.AttributeClass is { TypeArguments.Length: 1 } attrSymbol &&
-                attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            foreach (var attribute in methodAttributes)
             {
-                capture.MemberOf = typeArg.ToDisplayString();
-                capture.GroupMode = TargetMethodCaptureContext.DeclarationMode.ClassDeclaration;
+                if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition,
+                        memberAttributeSymbol))
+                {
+                    continue;
+                }
+
+                if (attribute?.AttributeClass is { TypeArguments.Length: 1 } attrSymbol &&
+                    attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+                {
+                    capture.MemberOf = typeArg.ToDisplayString();
+                    capture.GroupMode = TargetMethodCaptureContext.DeclarationMode.MethodDeclaration;
+                }
             }
         }
-
-        foreach (var attribute in methodAttributes)
-        {
-            if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition,
-                    memberAttributeSymbol))
-            {
-                continue;
-            }
-
-            if (attribute?.AttributeClass is { TypeArguments.Length: 1 } attrSymbol &&
-                attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
-            {
-                capture.MemberOf = typeArg.ToDisplayString();
-                capture.GroupMode = TargetMethodCaptureContext.DeclarationMode.MethodDeclaration;
-            }
-        }
         
-        if (classSymbol.GetAttributes() .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null)
+        if (classAttributes.FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null)
         {
             capture.ConfigurationMode = TargetMethodCaptureContext.DeclarationMode.ClassDeclaration;
         }
-        else if(methodSymbol.GetAttributes() .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null)
+        if(methodAttributes.FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null)
         {
             capture.ConfigurationMode = TargetMethodCaptureContext.DeclarationMode.MethodDeclaration;
         }
@@ -215,6 +224,16 @@ public partial class EndpointGenerator
 
         var name = type.symbol.Name;
 
+        var memberOf = type.metadata.IsEndpointGroup
+            ? $"{@namespace}.{name}"
+            : type.metadata.MemberOf;
+
+        var configurationMode =
+            type.metadata.ConfigurationMode == TargetMethodCaptureContext.DeclarationMode.ClassDeclaration &&
+            type.metadata.IsEndpointGroup
+                ? TargetMethodCaptureContext.DeclarationMode.Na
+                : type.metadata.ConfigurationMode;
+        
         return new TargetMethodCaptureContext(
             @namespace,
             name,
@@ -223,8 +242,11 @@ public partial class EndpointGenerator
             type.metadata.HttpRoute,
             type.metadata.Name,
             type.metadata.Description,
-            type.metadata.MemberOf,
-            type.metadata.ConfigurationMode,
-            type.metadata.GroupMode);
+            memberOf,
+            configurationMode,
+            type.metadata.IsEndpointGroup 
+                ? TargetMethodCaptureContext.DeclarationMode.ClassDeclaration 
+                : type.metadata.GroupMode,
+            type.metadata.IsEndpointGroup);
     }
 }

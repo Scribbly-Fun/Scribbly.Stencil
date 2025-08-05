@@ -2,7 +2,6 @@
 
 namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Dinner;
 
-[Configure] 
 [EndpointGroup("/dinner/2", "Dinner Squared")]
 [GroupMember<MenuGroup>]
 public partial class DinnerEndpoints
@@ -24,26 +23,4 @@ public partial class DinnerEndpoints
     {
         return new { id = id };
     }
-    
-    /// <inheritdoc />
-    public void Configure(IEndpointConventionBuilder dinnerEndpointsBuilder)
-    {
-        
-    }
-
-    /// <inheritdoc />
-    public void ConfigureGetDinnerMenu(IEndpointConventionBuilder getDinnerMenuBuilder)
-    {
-    }
-
-    /// <inheritdoc />
-    public void ConfigurePostDinnerMenu(IEndpointConventionBuilder postDinnerMenuBuilder)
-    {
-    }
-
-    /// <inheritdoc />
-    public void ConfigurePutDinnerMenu(IEndpointConventionBuilder putDinnerMenuBuilder)
-    {
-    }
-
 }
