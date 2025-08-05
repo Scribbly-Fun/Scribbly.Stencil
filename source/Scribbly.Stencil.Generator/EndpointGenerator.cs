@@ -23,12 +23,6 @@ public class EndpointGenerator : IIncrementalGenerator
             .Select(static (type, _) => TransformHandlerType(type!.Value))
             .WithComparer(TargetMethodCaptureContextComparer.Instance);
         
-        var baseEndpointProvider = context.SyntaxProvider
-            .CreateSyntaxProvider(HandlerSyntacticPredicate, HandlerSemanticTransform)
-            .Where(static (type) => type.HasValue)
-            .Select(static (type, _) => TransformHandlerType(type!.Value))
-            .WithComparer(TargetMethodCaptureContextComparer.Instance);
-        
         IncrementalValuesProvider<TargetGroupCaptureContext> routeGroupProvider = context.SyntaxProvider
             .CreateSyntaxProvider(GroupSyntacticPredicate, GroupSemanticTransform)
             .Where(static (type) => type.HasValue)
