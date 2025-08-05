@@ -29,8 +29,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapScribblyApp();
-
+app.MapStencilApp();
 
 app.Run();
 

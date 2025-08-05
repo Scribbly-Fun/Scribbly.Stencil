@@ -25,22 +25,4 @@ public partial class NoGroupEndpoints
     {
         return new { id = id };
     }
-
-    /// <inheritdoc />
-    public void ConfigureGetLunchMenu(IEndpointConventionBuilder getLunchMenuBuilder)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <inheritdoc />
-    public void ConfigurePostLunchMenu(IEndpointConventionBuilder postLunchMenuBuilder)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <inheritdoc />
-    public void ConfigurePutLunchMenu(IEndpointConventionBuilder putLunchMenuBuilder)
-    {
-        throw new NotImplementedException();
-    }
 }

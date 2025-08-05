@@ -102,7 +102,10 @@ public class EndpointGenerator : IIncrementalGenerator
 
         var deleteEndpointAttr = methodSymbol.GetAttributes()
             .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == DeleteEndpointAttribute.TypeFullName);
-
+        
+        var configureAtt = methodSymbol.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName);
+        
         var capture = (getEndpointAttr, postEndpointAttr, putEndpointAttr, deleteEndpointAttr) switch
         {
             (null, null, null, null) => null,
@@ -132,7 +135,10 @@ public class EndpointGenerator : IIncrementalGenerator
                 capture.MemberOf = typeArg.ToDisplayString(); 
             }
         }
-
+        
+        capture.IsConfigurable = methodSymbol.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null;
+        
         return (classSymbol, capture);
     }
     
@@ -309,7 +315,8 @@ public class EndpointGenerator : IIncrementalGenerator
             type.metadata.HttpRoute,
             type.metadata.Name,
             type.metadata.Description,
-            type.metadata.MemberOf);
+            type.metadata.MemberOf,
+            type.metadata.IsConfigurable);
     }
     
     /// <summary>

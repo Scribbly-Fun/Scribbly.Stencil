@@ -18,19 +18,19 @@ A framework for organizing and generating minimal API endpoints.
 
 ## Table of Contents
 1. [🎁 Packages](#packages)
-2. [💪 Groups](#Groups)
-3. [🛒 Endpoints](#Endpoints)
+2. [🎯 Endpoints](#Endpoints)
+3. [🛒 Groups](#Groups)
 4. [🥣 Cookbook](#Cookbook)
 
 ## Example
 
 Below is a brief snip of code to get you started before reading more.
 
-1. Add a reference to the `Scribbly.Stencil` package and annotate a method on a partial static class.
+1. Add a reference to the `Scribbly.Stencil` package and annotate a static method on a partial class.
 
 ```csharp
 [EndpointGroup("/lunch")]
-public static partial class LunchGroup
+public partial class LunchGroup
 {
     // Annotate any method signature with the VerbEndpoint attribute
     [GetEndpoint("/{id}", "Get Lunch", "Fetches the current lunch for the provided restaurant ID.")]
@@ -51,7 +51,7 @@ public static partial class LunchGroup
 2. An HTTP Endpoint Registration Method
 
 ``` csharp
-public static IEndpointRouteBuilder MapDinnerGroupPostLunchMenuEndpoint(this IEndpointRouteBuilder builder)
+public static IEndpointRouteBuilder MapLunchGroupGetLunchMenu(this IEndpointRouteBuilder builder)
 {
     builder.MapPost("/{id}", PostLunchMenu);
     return builder;
@@ -63,8 +63,8 @@ public static IEndpointRouteBuilder MapDinnerGroupPostLunchMenuEndpoint(this IEn
 ```csharp
 public static IEndpointRouteBuilder MapScribblyEndpoints(this IEndpointRouteBuilder builder)
 {
-    builder.MapLunchGroupGetLunchMenuEndpoint();
-    builder.MapLunchGroupPostLunchMenuEndpoint();
+    builder.MapLunchGroupGetLunchMenu();
+    builder.MapLunchGroupPostLunchMenu();
     return builder;
 } 
 
@@ -73,16 +73,162 @@ public static IEndpointRouteBuilder MapScribblyEndpoints(this IEndpointRouteBuil
 4. Simply Map Your Application
 
 ```csharp
-app.MapScribblyEndpoints();
+app.MapStencilApp();
 ```
 
 *Optionally Add a Group or Route Prefix*
 
 ```csharp
-app.MapScribblyEndpoints("/api");
+app.MapStencilApp("/api");
 ```
 
-# Endpoint Groups
+# 🎯 Endpoints
+
+With `Scribbly.Stencil` endpoints are declared as a static method and automatically mapped to an HTTP request. 
+The generator will accept several type configurations however the enclosing class **MUST** be a ``public partial class``.
+The method signature **MAY** be private but must be declared `static`.
+
+```csharp
+public partial class BreakfastEndpoints
+{
+    [PutEndpoint("/breakfast/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
+    private static object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
+    {
+        return new { id = id };
+    }
+}
+```
+
+Any method signature supported by a Minimal API Endpoint is fine and support by `Scribbly.Stencil` the rest o f
+
+```csharp
+public partial class BreakfastEndpoints
+{
+    [PutEndpoint("/breakfast/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
+    private static Task<IResult> PutBreakfastMenu([FromQuery] string id)
+    {
+    }
+    
+    [PutEndpoint("/breakfast/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
+    private static Task<string> PutBreakfastMenu([FromServices] IService service)
+    {
+    }
+}
+```
+
+The code generator will kick into action when it finds a method annotated with any of the `EndpointAttributes`
+
+![Static Badge](https://img.shields.io/badge/GetEndpoint-blue)
+
+![Static Badge](https://img.shields.io/badge/PutEndpoint-blue)
+
+![Static Badge](https://img.shields.io/badge/PostEndpoint-green)
+
+![Static Badge](https://img.shields.io/badge/DeleteEndpoint-green)
+
+*once our APIs are stable support for more HTTP verbs will be added.*
+
+Types can declare multiple endpoints
+
+```csharp
+public partial class BreakfastEndpoints
+{
+    [GetEndpoint("/breakfast/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
+    private static object GetBreakfastMenu(HttpContext context, [FromRoute] string id)
+    {
+    }
+    
+    [PutEndpoint("/breakfast/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
+    private static object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
+    {
+    }
+}
+```
+
+Endpoints can also be grouped together with a parent ``IEndpointRouteBuilder`` **see groups below for details**
+
+```csharp
+
+[EndpointGroup("/breakfast", "Manage Breakfast Menu")]
+public partial class BreakfastGroup
+{
+}
+
+[GroupMember<BreakfastGroup>]
+public partial class BreakfastEndpoints
+{
+    [GetEndpoint("/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
+    private static object GetBreakfastMenu(HttpContext context, [FromRoute] string id)
+    {
+    }
+    
+    [PutEndpoint("/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
+    private static object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
+    {
+    }
+}
+```
+
+Group membership is Type Safe as the Generic Parameter can **ONLY** accept a ``Scribbly.Stencil.IGroup`` interface.
+Membership can be added to endpoints at either the `method declaration` or the `class declartion`.
+
+```csharp
+
+[EndpointGroup("/breakfast", "Manage Breakfast Menu")]
+public partial class BreakfastGroup
+{
+}
+
+[EndpointGroup("/menu", "Manage Breakfast Menu")]
+public partial class MenuGroup
+{
+}
+
+[GroupMember<BreakfastGroup>]
+public partial class BreakfastEndpoints
+{
+    [GetEndpoint("/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
+    private static object GetBreakfastMenu(HttpContext context, [FromRoute] string id)
+    {
+    }
+    
+    [PutEndpoint("/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
+    [GroupMember<MenuGroup>]    
+    private static object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
+    {
+    }
+}
+```
+*in the example above the PutBreakfastMenu would be added the `MenuGroup` with a route /menu NOT /breakfast*
+
+### Configuration
+
+`Stencil` allows you to easily plug into the configuration for each endpoint generated by your Methods.
+Simply add the `Configure` attribute to the `method declaration` or `class declaration` and magic 🐣
+
+![endpoint_configure.gif](./docs/endpoint_configure.gif)
+
+Your type will now implement a custom interface used by the code generator.  This tells `Scribbly.Stencil` to invoke your configure method allowing you to modify and append the builder.  This interface forces the compiler to guid you.
+
+```csharp
+public partial class BreakfastEndpoints
+{
+    [PutEndpoint("/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
+    [Configure]
+    private static object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
+    {
+        return new { id = id };
+    }
+
+    /// <inheritdoc />
+    public void ConfigurePutBreakfastMenu(IEndpointConventionBuilder putBreakfastMenuBuilder)
+    {
+        putBreakfastMenuBuilder.ProducesProblem(404);
+    }
+}
+```
+
+# 🛒 Groups
 
 Endpoint groups can be created to map several endpoints with common routing and configuration.  ``Scribbly.Stencil``
 will build this routing tree for you behind the scenes.  Just create a Group and attached members.

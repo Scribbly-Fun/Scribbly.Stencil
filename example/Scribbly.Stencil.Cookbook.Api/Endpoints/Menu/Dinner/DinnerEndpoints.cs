@@ -10,6 +10,7 @@ public partial class DinnerEndpoints
     
     [GetEndpoint("/{id}", "Gets Dinner", "Queries a new Dinner Item")]
     [GroupMember<DinnerGroup>]
+    [Configure]
     private static IResult GetDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
@@ -32,18 +33,7 @@ public partial class DinnerEndpoints
     /// <inheritdoc />
     public void ConfigureGetDinnerMenu(IEndpointConventionBuilder getDinnerMenuBuilder)
     {
-        throw new NotImplementedException();
+        
     }
-
-    /// <inheritdoc />
-    public void ConfigurePostDinnerMenu(IEndpointConventionBuilder postDinnerMenuBuilder)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <inheritdoc />
-    public void ConfigurePutDinnerMenu(IEndpointConventionBuilder putDinnerMenuBuilder)
-    {
-        throw new NotImplementedException();
-    }
+    
 }
