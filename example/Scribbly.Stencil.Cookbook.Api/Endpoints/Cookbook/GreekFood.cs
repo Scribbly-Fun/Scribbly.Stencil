@@ -1,30 +1,36 @@
 ﻿namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Cookbook;
 
-[EndpointGroup("indian-food", "Indian-Food")]
+[EndpointGroup("greek-food", "Greek-Food")]
 [GroupMember<Api>]
-public partial class IndianFood
+public partial class GreekGroup
+{
+    
+}
+
+[GroupMember<GreekGroup>]
+public partial class GreekFood
 {
     private record EditRequest(string Id);
     
-    [GetEndpoint("/{id}", "GetIndianRecipe", "Gets an Indian Recipe")]
+    [GetEndpoint("/{id}", "GetGreekRecipe", "Gets an Greek Recipe")]
     private IResult Get(HttpContext context, string id)
     {
         return Results.Ok(new { Receipe = id });
     }
     
-    [PostEndpoint("/{id}", "PostIndianRecipe", "Creates an Indian Recipe")]
+    [PostEndpoint("/{id}", "PostGreekRecipe", "Creates an Greek Recipe")]
     private object Post(HttpContext context, string id)
     {
-        return Results.CreatedAtRoute("GetIndianRecipe", new { id = id }, new { Receipe = id });
+        return Results.CreatedAtRoute("GetGreekRecipe", new { id = id }, new { Receipe = id });
     }
     
-    [PutEndpoint("/{id}", "PutIndianRecipe", "Edits an Indian Recipe")]
+    [PutEndpoint("/{id}", "PutGreekRecipe", "Edits an Greek Recipe")]
     private object Put(HttpContext context, string id, EditRequest request)
     {
         return Results.Ok(request);
     }
     
-    [DeleteEndpoint("/{id}", "DeleteIndianRecipe", "Removes an Indian Recipe")]
+    [DeleteEndpoint("/{id}", "DeleteGreekRecipe", "Removes an Greek Recipe")]
     private object Delete(HttpContext context, string id)
     {
         return new { id = id };
