@@ -16,6 +16,8 @@ A framework for organizing and generating minimal API endpoints.
 ![Static Badge](https://img.shields.io/badge/REQUEST-green)
 ![Static Badge](https://img.shields.io/badge/RESPOND-blue)
 
+![hero_vid.gif](./docs/hero_vid.gif)
+
 ## Table of Contents
 1. [🎁 Packages](#packages)
 2. [🎯 Endpoints](#Endpoints)
@@ -86,13 +88,13 @@ app.MapStencilApp("/api");
 
 With `Scribbly.Stencil` endpoints are declared as a static method and automatically mapped to an HTTP request. 
 The generator will accept several type configurations however the enclosing class **MUST** be a ``public partial class``.
-The method signature **MAY** be private but must be declared `static`.
+The method signature **MAY** be private or public, static or an instance member..
 
 ```csharp
 public partial class BreakfastEndpoints
 {
     [PutEndpoint("/breakfast/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
-    private static object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
+    private object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
     }
@@ -265,6 +267,36 @@ public partial class LunchEndpoints
     private static IResult GetLunchMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
+    }
+}
+```
+
+Using `Scribbly.Stencil` you can also contain endpoints inside of groups.  Each endpoint will inherit the behavior of the encapsulating class.
+
+Since the `DinnerEndpoints` in the following example and annotated with the `EndpointGroup` and the `GroupMember<MenuGroup>`
+the endpoints will yield routes ``/menu/dinner/{id}`` 
+
+```csharp
+[EndpointGroup("/dinner", "Dinner time endpoints wrapped in a Group.")]
+[GroupMember<MenuGroup>]
+public partial class DinnerEndpoints
+{
+    [GetEndpoint("/{id}", "Gets Dinner", "Queries a new Dinner Item")]
+    private IResult GetDinnerMenu(HttpContext context, [FromRoute] string id)
+    {
+        return Results.Ok(id);
+    }
+    
+    [PostEndpoint("/{id}", "Create Dinner", "Creates a new Dinner Item")]
+    private object PostDinnerMenu(HttpContext context, [FromRoute] string id)
+    {
+        return Results.Ok(id);
+    }
+    
+    [PutEndpoint("/{id}", "Edit Dinner", "Edits a Dinner Item")]
+    private object PutDinnerMenu(HttpContext context, [FromRoute] string id)
+    {
+        return new { id = id };
     }
 }
 ```

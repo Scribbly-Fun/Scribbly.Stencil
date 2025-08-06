@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Scribbly.Stencil.Endpoints.Context;
 using Scribbly.Stencil.Endpoints.Factories;
 
 namespace Scribbly.Stencil.Endpoints;

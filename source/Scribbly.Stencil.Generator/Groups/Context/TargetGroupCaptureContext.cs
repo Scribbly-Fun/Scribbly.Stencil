@@ -1,6 +1,4 @@
-﻿using Scribbly.Stencil.Endpoints.Context;
-
-namespace Scribbly.Stencil.Groups;
+﻿namespace Scribbly.Stencil.Groups;
 
 public class TargetGroupCaptureContext : IComparable<TargetGroupCaptureContext>, IEquatable<TargetGroupCaptureContext>
 {
