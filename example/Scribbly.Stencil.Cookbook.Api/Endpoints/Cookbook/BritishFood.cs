@@ -1,5 +1,11 @@
 ﻿namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Cookbook;
 
+[EndpointGroup("/food")]
+public partial class NotAGroup
+{
+    
+}
+
 [EndpointGroup("british-food", "British-Food")]
 [GroupMember<Api>]
 public partial class BritishGroup

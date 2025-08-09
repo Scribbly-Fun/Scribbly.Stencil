@@ -32,3 +32,9 @@ jobs:
 
     - name: Test Solution
       run: dotnet test $SOLUTION --no-restore --verbosity normal
+      
+      # DOING THIS TO ENSURE THERE ARE NO NUGET ERRORS
+    - name: Pack NuGet Packages
+      run: |
+        dotnet build ./source/Scribbly.Stencil.Generator/Scribbly.Stencil.Generator.csproj -c Release
+        dotnet pack ./source/Scribbly.Stencil/Scribbly.Stencil.csproj -c Release -p:IsPacking=true
