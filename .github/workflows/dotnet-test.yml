@@ -35,4 +35,4 @@ jobs:
       
       # DOING THIS TO ENSURE THERE ARE NO NUGET ERRORS
     - name: Pack NuGet Packages
-      run: dotnet pack ./source/Scribbly.Stencil/Scribbly.Stencil.csproj -p:IsPacking='true' -c Release 
+      run: dotnet pack ./source/Scribbly.Stencil/Scribbly.Stencil.csproj -p:IsPacking='true'
