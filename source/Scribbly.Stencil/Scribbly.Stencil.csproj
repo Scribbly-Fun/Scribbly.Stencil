@@ -1,10 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0;</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <IsAotCompatible>true</IsAotCompatible>
 <!--
       Uncomment the lines below if you need to debug the SG code
       If you see any LongPath issue on Windows, check this doc
@@ -12,14 +11,9 @@
 -->
 <!-- <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles> -->
 <!-- <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath> -->
-
-
+    
   </PropertyGroup>
   
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
   <!--  Here we are conditionally packing the assembly only when running dotnet pack -P:IsPacking='true' 
         This ensures our local project reference assembly isn't included twice.  See Cookbook.Api.csproj for direct project refernece.-->
   <ItemGroup Condition="'$(IsPacking)' == 'true'">
