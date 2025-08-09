@@ -1,6 +1,7 @@
 ﻿// ReSharper disable SuggestVarOrType_Elsewhere
 
 using Microsoft.CodeAnalysis;
+using Scribbly.Stencil.Builder;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Groups;
 
@@ -37,5 +38,6 @@ public partial class EndpointGenerator : IIncrementalGenerator
         var collectedGroups = routeGroupProvider.Collect();
         var routeTree = collectedEndpoints.Combine(collectedGroups);
         context.RegisterSourceOutput(routeTree, GroupRegistrarExecution.Generate);
+        context.RegisterSourceOutput(routeTree, BuilderRegistrarExecution.Generate);
     }
 }

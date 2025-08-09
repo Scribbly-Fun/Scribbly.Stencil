@@ -12,6 +12,8 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddOpenApi();
 
+builder.Services.AddStencil();
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
