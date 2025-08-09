@@ -2,7 +2,7 @@
    <PropertyGroup>
      <RootNamespace>Scribbly.Stencil</RootNamespace>
      <IsPackable>true</IsPackable>
-     <TargetFramework>netstandard2.0</TargetFramework>
+     
      <LangVersion>latestmajor</LangVersion>
      <ImplicitUsings>enable</ImplicitUsings>
      <Nullable>enable</Nullable>

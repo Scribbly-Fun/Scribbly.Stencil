@@ -11,6 +11,10 @@ public class GroupRegistrarExecution
 {
     public static void Generate(SourceProductionContext context, (ImmutableArray<TargetMethodCaptureContext> Endpoints, ImmutableArray<TargetGroupCaptureContext> Groups) tree)
     {
+        if (tree.Endpoints.IsDefaultOrEmpty)
+        {
+            return;
+        }
         if (tree.Groups.IsDefaultOrEmpty)
         {
             GenerateWithoutGroups(context, tree);
@@ -45,9 +49,15 @@ public class GroupRegistrarExecution
                                      {{GroupUsingStatements(groups, endpointsWithoutGroup)}}
                                      
                                      namespace Scribbly.Stencil;
-
+                                     
+                                     /// <summary>
+                                     /// Extension method to register all Scribbly.Stencil endpoints and routing Groups.
+                                     /// </summary>   
                                      public static class GroupRegistrationExtensions
                                      {
+                                         /// <summary>
+                                         /// Maps all Stencil generated groups and endpoints to your root application builder or endpoint group.
+                                         /// </summary>   
                                          public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapStencilApp(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder app)
                                          {                            
                                      """);
@@ -94,8 +104,14 @@ public class GroupRegistrarExecution
                                      
                                      namespace Scribbly.Stencil;
 
+                                     /// <summary>
+                                     /// Extension method to register all Scribbly.Stencil endpoints and routing Groups.
+                                     /// </summary>   
                                      public static class GroupRegistrationExtensions
                                      {
+                                         /// <summary>
+                                         /// Maps all Stencil generated groups and endpoints to your root application builder or endpoint group.
+                                         /// </summary>  
                                          public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapStencilApp(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder app)
                                          {                            
                                      """);

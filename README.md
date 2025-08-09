@@ -88,7 +88,7 @@ app.MapStencilApp("/api");
 
 With `Scribbly.Stencil` endpoints are declared as a static method and automatically mapped to an HTTP request. 
 The generator will accept several type configurations however the enclosing class **MUST** be a ``public partial class``.
-The method signature **MAY** be private or public, static or an instance member..
+The method signature **MAY** be private or public, static or an instance member.
 
 ```csharp
 public partial class BreakfastEndpoints
