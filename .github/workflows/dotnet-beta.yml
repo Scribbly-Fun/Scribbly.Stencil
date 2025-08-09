@@ -54,7 +54,9 @@ jobs:
       run: dotnet build ./**.slnx -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release
 
     - name: Pack NuGet Packages
-      run: dotnet pack ./source/Scribbly.Stencil/Scribbly.Stencil.csproj -p:IsPacking='true' -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release -o bin/nugets
+      run: |
+        dotnet build ./source/Scribbly.Stencil.Generator/Scribbly.Stencil.Generator.csproj -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release
+        dotnet pack ./source/Scribbly.Stencil/Scribbly.Stencil.csproj -p:IsPacking='true' -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release -o bin/nugets
 
     - name: Upload NuGet package to GitHub
       uses: actions/upload-artifact@v4
