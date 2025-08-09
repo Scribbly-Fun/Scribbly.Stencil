@@ -30,5 +30,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapStencilApp();
 
+IServiceProvider serviceProvider = app.Services;
+
 app.Run();
 
