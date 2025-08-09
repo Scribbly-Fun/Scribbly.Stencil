@@ -39,8 +39,16 @@ $$"""
       /// Registers all stencil groups and endpoints in the DI container.
       /// <remarks>When utilized all Groups and Endpoints will be resolved from the container.</remarks>
       /// </summary>
-      public static IServiceCollection AddStencil(this IServiceCollection services)
+      public static IServiceCollection AddStencil(this IServiceCollection services, Action<StencilOptions>? configureOptions = null)
       {
+          var options = new StencilOptions();
+          configureOptions?.Invoke(options);
+          
+          if(!options.UseDependencyInjection)
+          {
+              return services;
+          }
+          services.AddSingleton(options);
   """);
     }
     

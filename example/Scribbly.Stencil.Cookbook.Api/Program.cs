@@ -3,7 +3,6 @@ using Scalar.AspNetCore;
 using Scribbly.Stencil;
 using Scribbly.Stencil.Cookbook.ApiService;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -12,7 +11,13 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddStencil();
+builder.Services.AddStencil(options =>
+{
+    options.ServicesScope = ServiceLifetime.Transient;
+    options.UseDependencyInjection = false;
+});
+
+builder.Services.Add(new ServiceDescriptor(typeof(Program), ServiceLifetime.Scoped));
 
 var app = builder.Build();
 
@@ -29,8 +34,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapStencilApp();
-
-IServiceProvider serviceProvider = app.Services;
 
 app.Run();
 
