@@ -101,7 +101,7 @@ public partial class BreakfastEndpoints
 }
 ```
 
-Any method signature supported by a Minimal API Endpoint is fine and support by `Scribbly.Stencil` the rest o f
+Any method signature supported by a Minimal API Endpoints is support by `Scribbly.Stencil`
 
 ```csharp
 public partial class BreakfastEndpoints
