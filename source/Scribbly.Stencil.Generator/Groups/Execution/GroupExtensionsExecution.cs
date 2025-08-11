@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Scribbly.Stencil.Builder.Context;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Endpoints.Factories;
 
@@ -80,7 +81,7 @@ public static class GroupExtensionsExecution
         sb.AppendLine();
         foreach (var endpoint in endpoints)
         {
-            sb.Append("        routeGroup.").CreateEndpointMappingMethodInvocation(subject: endpoint);
+            sb.Append("        routeGroup.").CreateEndpointMappingMethodInvocation(subject: endpoint, new BuilderCaptureContext());
             sb.AppendLine();
         }
         return  sb.ToString();

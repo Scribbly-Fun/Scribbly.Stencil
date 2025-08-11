@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Scribbly.Stencil.Builder.Context;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Endpoints.Factories;
 
@@ -73,7 +74,7 @@ public class GroupRegistrarExecution
         sb.AppendLine();
         foreach (var targetMethodCaptureContext in endpointsWithoutGroup)
         {
-            sb.Append("        app.").CreateEndpointMappingMethodInvocation(subject: targetMethodCaptureContext);
+            sb.Append("        app.").CreateEndpointMappingMethodInvocation(subject: targetMethodCaptureContext, new BuilderCaptureContext());
             sb.AppendLine();
         }
         

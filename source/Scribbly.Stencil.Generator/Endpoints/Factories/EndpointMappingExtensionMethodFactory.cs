@@ -15,6 +15,6 @@ public static class EndpointMappingExtensionMethodFactory
 
         return sb.Append("Map").Append(subject.TypeName).Append(subject.MethodName).Append('(')
             .Append("this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder, ")
-            .Append("this global::Microsoft.Extensions.DependencyInjection.IServiceScope scope)");
+            .Append("global::Microsoft.Extensions.DependencyInjection.IServiceScope scope)");
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Scribbly.Stencil.Builder.Context;
 
 namespace Scribbly.Stencil.Endpoints.Factories;
 
@@ -14,8 +15,13 @@ public static class EndpointMappingMethodNameFactory
         return sb.Append("Map").Append(subject.TypeName).Append(subject.MethodName);
     }
     
-    public static StringBuilder CreateEndpointMappingMethodInvocation(this StringBuilder sb, TargetMethodCaptureContext subject)
+    public static StringBuilder CreateEndpointMappingMethodInvocation(this StringBuilder sb, TargetMethodCaptureContext subject, BuilderCaptureContext? builderCtx)
     {
-        return sb.CreateEndpointMappingMethodName(subject).Append("();");
+        if (builderCtx is not { AddStencilWasInvoked: true })
+        {
+            return sb.CreateEndpointMappingMethodName(subject).Append("();");
+        }
+        
+        return sb.CreateEndpointMappingMethodName(subject).Append("(scope);");
     }
 }

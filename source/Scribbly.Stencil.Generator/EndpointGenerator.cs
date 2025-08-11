@@ -44,8 +44,9 @@ public partial class EndpointGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(endpointBuilderProvider, EndpointExtensionsExecution.Generate);
         
         var collectedEndpoints = endpointProvider.Collect();
+        var collectedEndpointsProvider = endpointProvider.Collect().Combine(stencilBuilderProvider);
         
-        context.RegisterSourceOutput(collectedEndpoints, EndpointRegistrarExecution.Generate);
+        context.RegisterSourceOutput(collectedEndpointsProvider, EndpointRegistrarExecution.Generate);
         
         context.RegisterSourceOutput(routeGroupProvider, GroupBuilderExecution.Generate);
         

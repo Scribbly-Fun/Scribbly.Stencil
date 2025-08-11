@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Scribbly.Stencil.Builder.Context;
 using Scribbly.Stencil.Endpoints.Factories;
 
 namespace Scribbly.Stencil.Endpoints;
@@ -8,8 +9,9 @@ namespace Scribbly.Stencil.Endpoints;
 public class EndpointRegistrarExecution
 {
     public static void Generate(SourceProductionContext context,
-        ImmutableArray<TargetMethodCaptureContext> endpoints)
+        (ImmutableArray<TargetMethodCaptureContext> endpoints, BuilderCaptureContext? builder) captureContext)
     {
+        var (endpoints, builder) = captureContext;
         if (endpoints.IsDefaultOrEmpty)
             return;
 
@@ -40,17 +42,19 @@ public static class ScribblyEndpointRegistry
     /// <summary>
     /// Maps the endpoints collected to the group or application.
     /// </summary>
-    public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapScribblyEndpoints(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
-    {
 ");
+        sb.CreateEndpointRegistrationMethodSignature(builder);
+        sb.AppendLine("{");
         foreach (var endpoint in endpoints.Distinct(TargetMethodCaptureContextComparer.Instance))
         {
-            sb.Append($@"        builder.").CreateEndpointMappingMethodInvocation(subject: endpoint).AppendLine(); 
+            sb.Append("        builder.").CreateEndpointMappingMethodInvocation(subject: endpoint, builder).AppendLine(); 
         }
 
-        sb.AppendLine(@"        return builder;
-    } 
-}");
+        sb.AppendLine("""
+                              return builder;
+                          } 
+                      }
+                      """);
         context.AddSource($"Registrar.Scribbly.Stencil.EndpointRegistry.g.cs", sb.ToString());
     }
 }
