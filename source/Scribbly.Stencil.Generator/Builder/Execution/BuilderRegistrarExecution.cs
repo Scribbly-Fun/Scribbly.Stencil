@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Scribbly.Stencil.Builder.Context;
 using Scribbly.Stencil.Builder.Factories;
 using Scribbly.Stencil.Endpoints;
+using Scribbly.Stencil.Factories;
 using Scribbly.Stencil.Groups;
 
 namespace Scribbly.Stencil.Builder;
@@ -17,7 +18,7 @@ public class BuilderRegistrarExecution
             ImmutableArray<TargetGroupCaptureContext> Groups) 
             Tree) builderContext)
     {
-        var builder = new StringBuilder();
+        var builder = FileHeaderFactory.CreateFileHeader();
         
         if (builderContext.Builder is not {AddStencilWasInvoked: true })
         {
