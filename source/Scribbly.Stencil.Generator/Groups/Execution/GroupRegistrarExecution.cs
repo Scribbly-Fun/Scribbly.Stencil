@@ -1,8 +1,10 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Scribbly.Stencil.Builder.Context;
+using Scribbly.Stencil.Builder.Factories;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Endpoints.Factories;
 
@@ -10,28 +12,32 @@ namespace Scribbly.Stencil.Groups;
 
 public class GroupRegistrarExecution
 {
-    public static void Generate(SourceProductionContext context, (ImmutableArray<TargetMethodCaptureContext> Endpoints, ImmutableArray<TargetGroupCaptureContext> Groups) tree)
+    public static void Generate(
+        SourceProductionContext context, 
+        ((ImmutableArray<TargetMethodCaptureContext> Endpoints, ImmutableArray<TargetGroupCaptureContext> Groups) Tree, BuilderCaptureContext? Builder) captureContext)
     {
+        var (tree, builder) = captureContext;
+        
         if (tree.Endpoints.IsDefaultOrEmpty)
         {
             return;
         }
         if (tree.Groups.IsDefaultOrEmpty)
         {
-            GenerateWithoutGroups(context, tree);
+            GenerateWithoutGroups(context, tree, builder);
             return;
         }
         
-        GenerateWithGroups(context, tree);
+        GenerateWithGroups(context, tree, builder);
     }
 
-    private static void GenerateWithGroups(SourceProductionContext context, (ImmutableArray<TargetMethodCaptureContext> Endpoints, ImmutableArray<TargetGroupCaptureContext> Groups) tree)
+    private static void GenerateWithGroups(SourceProductionContext context, (ImmutableArray<TargetMethodCaptureContext> Endpoints, ImmutableArray<TargetGroupCaptureContext> Groups) tree, BuilderCaptureContext? builderCtx)
     {
         var (endpoints, groups) = tree;
         
         var endpointsWithoutGroup = endpoints.Where(e => e.MemberOf == null).ToList();
         
-        var groupMap = groups.ToDictionary(
+        var groupMap = groups.ToFrozenDictionary(
             g => $"{g.Namespace}.{g.TypeName}",
             v => new GroupItem($"{v.Namespace}.{v.TypeName}", v));
         
@@ -61,20 +67,19 @@ public class GroupRegistrarExecution
                                          /// </summary>   
                                          public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapStencilApp(this global::Microsoft.AspNetCore.Builder.WebApplication webApplication, string? prefix = null)
                                          { 
-                                             global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder app = webApplication;
-                                             global::System.IServiceProvider serviceProvider = webApplication.Services;   
+                                             global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder app = webApplication;  
                                              
                                              if(!string.IsNullOrWhiteSpace(prefix))
                                              {
                                                  app = webApplication.MapGroup(prefix);
                                              }
-                                             
+                                             {{new StringBuilder().CreateServiceScopeUsing(builderCtx)}}
                                      """);
         
         sb.AppendLine();
         foreach (var targetMethodCaptureContext in endpointsWithoutGroup)
         {
-            sb.Append("        app.").CreateEndpointMappingMethodInvocation(subject: targetMethodCaptureContext, new BuilderCaptureContext());
+            sb.Append("        app.").CreateEndpointMappingMethodInvocation(subject: targetMethodCaptureContext, builderCtx);
             sb.AppendLine();
         }
         
@@ -83,7 +88,7 @@ public class GroupRegistrarExecution
         
         foreach (var root in groupDictionary)
         {
-            EmitGroup(sb, root, parentBuilderName: "app");
+            EmitGroup(sb, root, parentBuilderName: "app", builderCtx is {AddStencilWasInvoked: true});
         }
         
         sb.AppendLine("""
@@ -94,7 +99,7 @@ public class GroupRegistrarExecution
         context.AddSource($"Registrar.Scribbly.Stencil.GroupRegistry.g.cs", sb.ToString());
     }
     
-    private static void GenerateWithoutGroups(SourceProductionContext context, (ImmutableArray<TargetMethodCaptureContext> Endpoints, ImmutableArray<TargetGroupCaptureContext> Groups) tree)
+    private static void GenerateWithoutGroups(SourceProductionContext context, (ImmutableArray<TargetMethodCaptureContext> Endpoints, ImmutableArray<TargetGroupCaptureContext> Groups) tree, BuilderCaptureContext? builderCtx)
     {
         var (endpoints, groups) = tree;
         var endpointsWithoutGroup = endpoints.Where(e => e.MemberOf == null);
@@ -121,8 +126,15 @@ public class GroupRegistrarExecution
                                          /// <summary>
                                          /// Maps all Stencil generated groups and endpoints to your root application builder or endpoint group.
                                          /// </summary>  
-                                         public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapStencilApp(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder app)
-                                         {                            
+                                         public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapStencilApp(this global::Microsoft.AspNetCore.Builder.WebApplication webApplication, string? prefix = null)
+                                         {     
+                                             global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder app = webApplication;  
+                                         
+                                             if(!string.IsNullOrWhiteSpace(prefix))
+                                             {
+                                                 app = webApplication.MapGroup(prefix);
+                                             }    
+                                             {{new StringBuilder().CreateServiceScopeUsing(builderCtx)}}                   
                                      """);
         
         sb.AppendLine();
@@ -140,7 +152,7 @@ public class GroupRegistrarExecution
         context.AddSource($"Registrar.Scribbly.Stencil.GroupRegistry.g.cs", sb.ToString());
     }
     
-    private static List<GroupItem> CreateTree(Dictionary<string, GroupItem> map)
+    private static IReadOnlyList<GroupItem> CreateTree(FrozenDictionary<string, GroupItem> map)
     {
         var childKeys = new HashSet<string>();
 
@@ -167,14 +179,16 @@ public class GroupRegistrarExecution
     private static void EmitGroup(
         StringBuilder sb,
         GroupItem group,
-        string parentBuilderName)
+        string parentBuilderName,
+        bool withScope)
     {
         var builderName = CreateGroupName(group.Context);
-        sb.AppendLine($"        var {builderName} = {parentBuilderName}.Map{group.Context?.TypeName}();");
+        sb.Append($"        var ").Append(builderName).Append("= ").Append(parentBuilderName).Append(".Map").Append(group.Context?.TypeName).AppendLine(withScope ? "(scope);" :"();");
+        // sb.AppendLine($"        var {builderName} = {parentBuilderName}.Map{group.Context?.TypeName}();");
         
         foreach (var child in group.Children)
         {
-            EmitGroup(sb, child, builderName);
+            EmitGroup(sb, child, builderName, withScope);
         }
     }
     
@@ -198,7 +212,7 @@ public class GroupRegistrarExecution
         return $"{context?.Namespace}_{context?.TypeName}".Replace(".", "_").ToLower();
     }
     
-    private static StringBuilder DebugTree(StringBuilder sb, List<GroupItem> groups, bool enable)
+    private static StringBuilder DebugTree(StringBuilder sb, IReadOnlyList<GroupItem> groups, bool enable)
     {
         if (!enable)
         {

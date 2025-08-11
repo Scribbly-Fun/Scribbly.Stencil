@@ -9,12 +9,12 @@ public static class GroupRegistrarExtensionMethodFactory
     {
         if (builderCtx is not { AddStencilWasInvoked: true })
         {
-            return sb.AppendLine("public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map").Append(group.TypeName).Append("(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)");
+            return sb.Append("public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map").Append(group.TypeName).AppendLine("(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)");
         }
 
         return sb
-            .AppendLine("public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map")
+            .Append("public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map")
             .Append(group.TypeName)
-            .Append("(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder, global::Microsoft.Extensions.DependencyInjection.IServiceScope scope)");
+            .AppendLine("(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder, global::Microsoft.Extensions.DependencyInjection.IServiceScope scope)");
     }   
 }

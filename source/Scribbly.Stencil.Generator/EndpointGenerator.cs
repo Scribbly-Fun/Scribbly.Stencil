@@ -50,12 +50,13 @@ public partial class EndpointGenerator : IIncrementalGenerator
         
         context.RegisterSourceOutput(routeGroupProvider, GroupBuilderExecution.Generate);
         
-        var groupedEndpoints = routeGroupProvider.Combine(collectedEndpoints);
+        var groupedEndpoints = routeGroupProvider.Combine(stencilBuilderProvider).Combine(collectedEndpoints);
         context.RegisterSourceOutput(groupedEndpoints, GroupExtensionsExecution.Generate);
         
         var collectedGroups = routeGroupProvider.Collect();
         var routeTree = collectedEndpoints.Combine(collectedGroups);
-        context.RegisterSourceOutput(routeTree, GroupRegistrarExecution.Generate);
+        var routeTreeProvider = routeTree.Combine(stencilBuilderProvider);
+        context.RegisterSourceOutput(routeTreeProvider, GroupRegistrarExecution.Generate);
         
         var dependencyInjection = stencilBuilderProvider.Combine(routeTree);
         context.RegisterSourceOutput(dependencyInjection, BuilderRegistrarExecution.Generate);
