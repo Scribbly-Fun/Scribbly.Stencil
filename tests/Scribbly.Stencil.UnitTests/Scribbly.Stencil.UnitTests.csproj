@@ -16,6 +16,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\source\Scribbly.Stencil\Scribbly.Stencil.csproj" />
+    <ProjectReference Include="..\..\source\Scribbly.Stencil.Generator\Scribbly.Stencil.Generator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>

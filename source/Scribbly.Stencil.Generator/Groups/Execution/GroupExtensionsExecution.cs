@@ -1,8 +1,10 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Scribbly.Stencil.Builder.Context;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Endpoints.Factories;
+using Scribbly.Stencil.Groups.Factories;
 
 namespace Scribbly.Stencil.Groups;
 
@@ -13,9 +15,11 @@ public static class GroupExtensionsExecution
     /// </summary>
     /// <param name="context">Generator Context</param>
     /// <param name="capture">Captured Group combined with the endpoints Context</param>
-    public static void Generate(SourceProductionContext context, (TargetGroupCaptureContext Group, ImmutableArray<TargetMethodCaptureContext> Endpoints) capture)
+    public static void Generate
+        (SourceProductionContext context, 
+        ((TargetGroupCaptureContext Group, BuilderCaptureContext? Builder) GroupContext, ImmutableArray<TargetMethodCaptureContext> Endpoints) capture)
     {
-        var subject = capture.Group;
+        var (subject, builder) = capture.GroupContext;
 
         var endpoints = capture.Endpoints
             .Where(e => e.MemberOf == $"{subject.Namespace}.{subject.TypeName}")
@@ -46,12 +50,12 @@ public static class GroupExtensionsExecution
                   /// <summary>
                   /// Maps the endpoint group {{subject.TypeName}} to a endpoint builder with the routing prefix {{subject.TypeName}}.
                   /// </summary>
-                  public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{{subject.TypeName}}(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
+                  {{new StringBuilder().CreateGroupRegistrationMethodSignature(subject, builder)}}
                   {
-                      var scribblyGroup = new global::{{subject.Namespace}}.{{subject.TypeName}}();
+                      {{new StringBuilder().CreateNewGroup(subject, builder)}}
 
                       var routeGroup = scribblyGroup.Map{{subject.TypeName}}(builder);
-                      {{CreateEndpointMapping(endpoints)}}
+                      {{CreateEndpointMapping(endpoints, builder)}}
                       return routeGroup;
                   }
               }
@@ -74,13 +78,13 @@ public static class GroupExtensionsExecution
         return builder.ToString();
     }
     
-    private static string CreateEndpointMapping(List<TargetMethodCaptureContext> endpoints)
+    private static string CreateEndpointMapping(List<TargetMethodCaptureContext> endpoints, BuilderCaptureContext? builderCtx)
     {
         var sb = new StringBuilder();
         sb.AppendLine();
         foreach (var endpoint in endpoints)
         {
-            sb.Append("        routeGroup.").CreateEndpointMappingMethodInvocation(subject: endpoint);
+            sb.Append("        routeGroup.").CreateEndpointMappingMethodInvocation(subject: endpoint, builderCtx);
             sb.AppendLine();
         }
         return  sb.ToString();

@@ -1,6 +1,10 @@
 ﻿// ReSharper disable SuggestVarOrType_Elsewhere
 
+using System.Text;
 using Microsoft.CodeAnalysis;
+using Scribbly.Stencil.Builder;
+using Scribbly.Stencil.Builder.Context;
+using Scribbly.Stencil.Builder.Factories;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Groups;
 
@@ -23,19 +27,45 @@ public partial class EndpointGenerator : IIncrementalGenerator
             .Select(static (type, _) => TransformGroupType(type!.Value))
             .WithComparer(TargetGroupCaptureContextComparer.Instance);
         
+        IncrementalValueProvider<BuilderCaptureContext?> stencilBuilderProvider =
+            context.SyntaxProvider
+                .CreateSyntaxProvider(BuilderInvocationSyntacticPredicate, BuilderInvocationSemanticTransform)
+                .Where(static type => type.HasValue)
+                .Select(static (type, _) => TransformBuilderInvocationType(type!.Value))
+                .WithComparer(BuilderCaptureContextComparer.Instance)
+                .Collect()
+                .Select(static (list, _) => list.FirstOrDefault());
+        
+        context.RegisterPostInitializationOutput(PostInitializationCallback);
+
+        var endpointBuilderProvider = endpointProvider.Combine(stencilBuilderProvider);
+        
         context.RegisterSourceOutput(endpointProvider, EndpointHandlerExecution.Generate);
-        context.RegisterSourceOutput(endpointProvider, EndpointExtensionsExecution.Generate);
+        context.RegisterSourceOutput(endpointBuilderProvider, EndpointExtensionsExecution.Generate);
         
         var collectedEndpoints = endpointProvider.Collect();
-        context.RegisterSourceOutput(collectedEndpoints, EndpointRegistrarExecution.Generate);
+        var collectedEndpointsProvider = endpointProvider.Collect().Combine(stencilBuilderProvider);
+        
+        context.RegisterSourceOutput(collectedEndpointsProvider, EndpointRegistrarExecution.Generate);
         
         context.RegisterSourceOutput(routeGroupProvider, GroupBuilderExecution.Generate);
         
-        var groupedEndpoints = routeGroupProvider.Combine(collectedEndpoints);
+        var groupedEndpoints = routeGroupProvider.Combine(stencilBuilderProvider).Combine(collectedEndpoints);
         context.RegisterSourceOutput(groupedEndpoints, GroupExtensionsExecution.Generate);
         
         var collectedGroups = routeGroupProvider.Collect();
         var routeTree = collectedEndpoints.Combine(collectedGroups);
-        context.RegisterSourceOutput(routeTree, GroupRegistrarExecution.Generate);
+        var routeTreeProvider = routeTree.Combine(stencilBuilderProvider);
+        context.RegisterSourceOutput(routeTreeProvider, GroupRegistrarExecution.Generate);
+        
+        var dependencyInjection = stencilBuilderProvider.Combine(routeTree);
+        context.RegisterSourceOutput(dependencyInjection, BuilderRegistrarExecution.Generate);
+    }
+    
+    private static void PostInitializationCallback(IncrementalGeneratorPostInitializationContext context)
+    {
+        var builder = new StringBuilder().CreateServiceRegistrar();
+        context.AddSource($"Registrar.Scribbly.Stencil.ServiceExtensions.g.cs", builder.ToString());
     }
 }
+

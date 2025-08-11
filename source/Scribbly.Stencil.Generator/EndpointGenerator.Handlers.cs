@@ -28,6 +28,8 @@ public partial class EndpointGenerator
         GeneratorSyntaxContext context, CancellationToken cancellation)
     {
         var methodDeclaration = (MethodDeclarationSyntax)context.Node;
+        if (!ValidateHandlerCandidateModifiers(methodDeclaration))
+            return null;
         var methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDeclaration);
 
         if (methodSymbol is null)
@@ -133,6 +135,17 @@ public partial class EndpointGenerator
             return false;
 
         if (candidate.Modifiers.Any(SyntaxKind.StaticKeyword))
+            return false;
+
+        return true;
+    }
+    
+    private static bool ValidateHandlerCandidateModifiers(MethodDeclarationSyntax? candidate)
+    {
+        if (candidate == null)
+            return false;
+        
+        if (!candidate.Modifiers.Any(SyntaxKind.StaticKeyword))
             return false;
 
         return true;

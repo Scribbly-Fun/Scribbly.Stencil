@@ -7,25 +7,25 @@ public partial class IndianFood
     private record EditRequest(string Id);
     
     [GetEndpoint("/{id}", "GetIndianRecipe", "Gets an Indian Recipe")]
-    private IResult Get(HttpContext context, string id)
+    private static IResult Get(HttpContext context, string id)
     {
         return Results.Ok(new { Receipe = id });
     }
     
     [PostEndpoint("/{id}", "PostIndianRecipe", "Creates an Indian Recipe")]
-    private object Post(HttpContext context, string id)
+    private static object Post(HttpContext context, string id)
     {
         return Results.CreatedAtRoute("GetIndianRecipe", new { id = id }, new { Receipe = id });
     }
     
     [PutEndpoint("/{id}", "PutIndianRecipe", "Edits an Indian Recipe")]
-    private object Put(HttpContext context, string id, EditRequest request)
+    private static object Put(HttpContext context, string id, EditRequest request)
     {
         return Results.Ok(request);
     }
     
     [DeleteEndpoint("/{id}", "DeleteIndianRecipe", "Removes an Indian Recipe")]
-    private object Delete(HttpContext context, string id)
+    private static object Delete(HttpContext context, string id)
     {
         return new { id = id };
     }

@@ -19,21 +19,21 @@ public partial class BritishFood
     
     [GroupMember<BritishGroup>]
     [GetEndpoint("/{id}", "GetBritishRecipe", "Gets an British Recipe")]
-    private IResult Get(HttpContext context, string id)
+    private static IResult Get(HttpContext context, string id)
     {
         return Results.Ok(new { Receipe = "Bad Food" });
     }
     
     [GroupMember<BritishGroup>]
     [PostEndpoint("/{id}", "PostBritishRecipe", "Creates an British Recipe")]
-    private object Post(HttpContext context, string id)
+    private static object Post(HttpContext context, string id)
     {
         return Results.CreatedAtRoute("GetBritishRecipe", new { id = id }, new { Receipe = "Bad Food"  });
     }
     
     [GroupMember<BritishGroup>]
     [PutEndpoint("/{id}", "PutBritishRecipe", "Edits an British Recipe")]
-    private object Put(HttpContext context, string id, EditRequest request)
+    private static object Put(HttpContext context, string id, EditRequest request)
     {
         return Results.Ok(request with
         {
@@ -43,7 +43,7 @@ public partial class BritishFood
     
     [GroupMember<BritishGroup>]
     [DeleteEndpoint("/{id}", "DeleteBritishRecipe", "Removes an British Recipe")]
-    private object Delete(HttpContext context, string id)
+    private static object Delete(HttpContext context, string id)
     {
         return new { id = "Bad Food" };
     }

@@ -22,7 +22,8 @@ A framework for organizing and generating minimal API endpoints.
 1. [🎁 Packages](#packages)
 2. [🎯 Endpoints](#Endpoints)
 3. [🛒 Groups](#Groups)
-4. [🥣 Cookbook](#Cookbook)
+4. [💉 Dependency Injection](#💉DependencyInjection)
+5. [🥣 Cookbook](#Cookbook)
 
 ## Example
 
@@ -88,13 +89,15 @@ app.MapStencilApp("/api");
 
 With `Scribbly.Stencil` endpoints are declared as a static method and automatically mapped to an HTTP request. 
 The generator will accept several type configurations however the enclosing class **MUST** be a ``public partial class``.
-The method signature **MAY** be private or public, static or an instance member.
+The method signature **MAY** be private or public, but **MUST** be static.  
+
+Note: We are enforcing the use of ``static`` members to ensure your endpoints don't have a closure from the enclosing class.
 
 ```csharp
 public partial class BreakfastEndpoints
 {
     [PutEndpoint("/breakfast/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
-    private object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
+    private static object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
     }
@@ -282,19 +285,19 @@ the endpoints will yield routes ``/menu/dinner/{id}``
 public partial class DinnerEndpoints
 {
     [GetEndpoint("/{id}", "Gets Dinner", "Queries a new Dinner Item")]
-    private IResult GetDinnerMenu(HttpContext context, [FromRoute] string id)
+    private static IResult GetDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
     }
     
     [PostEndpoint("/{id}", "Create Dinner", "Creates a new Dinner Item")]
-    private object PostDinnerMenu(HttpContext context, [FromRoute] string id)
+    private static object PostDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
     }
     
     [PutEndpoint("/{id}", "Edit Dinner", "Edits a Dinner Item")]
-    private object PutDinnerMenu(HttpContext context, [FromRoute] string id)
+    private static object PutDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
     }
@@ -322,6 +325,44 @@ public partial class LunchGroup
     {
         applicationRootBuilder.AddEndpointFilter<MyFilter>();
         // .....
+    }
+}
+```
+
+# 💉 Dependency Injection
+
+`Scribbly.Stencil` handlers and groups optionally support Dependency Injection using `Microsoft.Extensions.DependencyInjection`.
+To utilize dependencies from without your Groups and Handlers configuration callbacks simply invoke the ``AddStencil`` method
+
+```csharp
+builder.Services.AddStencil();
+```
+
+Optional declare a service lifetime for the handlers.  This can help use scoped services out of the box.
+
+```csharp
+builder.Services.AddStencil(options =>
+{
+    options.ServicesScope = ServiceLifetime.Scoped;
+});
+```
+
+Once registered your groups and handler classes will be resolved from the DI container and services MAY be injected.
+
+```csharp
+public class MyOptions
+{
+    public string[] Tags { get; set; } = ["Menu"];
+}
+
+[EndpointGroup("/menu", "Manage Menu Items")]
+[Configure]
+public partial class MenuGroup(IOptions<MyOptions> options)
+{
+    /// <inheritdoc />
+    public void Configure(IEndpointConventionBuilder applicationRootBuilder)
+    {
+        applicationRootBuilder.WithTags(options.Value.Tags);
     }
 }
 ```
