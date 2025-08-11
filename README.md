@@ -88,13 +88,15 @@ app.MapStencilApp("/api");
 
 With `Scribbly.Stencil` endpoints are declared as a static method and automatically mapped to an HTTP request. 
 The generator will accept several type configurations however the enclosing class **MUST** be a ``public partial class``.
-The method signature **MAY** be private or public, static or an instance member.
+The method signature **MAY** be private or public, but **MUST** be static.  
+
+Note: We are enforcing the use of ``static`` members to ensure your endpoints don't have a closure from the enclosing class.
 
 ```csharp
 public partial class BreakfastEndpoints
 {
     [PutEndpoint("/breakfast/{id}", "Edit Breakfast", "Edits a Breakfast Item")]
-    private object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
+    private static object PutBreakfastMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
     }
@@ -282,19 +284,19 @@ the endpoints will yield routes ``/menu/dinner/{id}``
 public partial class DinnerEndpoints
 {
     [GetEndpoint("/{id}", "Gets Dinner", "Queries a new Dinner Item")]
-    private IResult GetDinnerMenu(HttpContext context, [FromRoute] string id)
+    private static IResult GetDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
     }
     
     [PostEndpoint("/{id}", "Create Dinner", "Creates a new Dinner Item")]
-    private object PostDinnerMenu(HttpContext context, [FromRoute] string id)
+    private static object PostDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
     }
     
     [PutEndpoint("/{id}", "Edit Dinner", "Edits a Dinner Item")]
-    private object PutDinnerMenu(HttpContext context, [FromRoute] string id)
+    private static object PutDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
     }
