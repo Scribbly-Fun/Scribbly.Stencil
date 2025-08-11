@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Scribbly.Stencil.Builder.Context;
 using Scribbly.Stencil.Builder.Factories;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Groups;
@@ -9,17 +10,31 @@ namespace Scribbly.Stencil.Builder;
 
 public class BuilderRegistrarExecution
 {
-    public static void Generate(SourceProductionContext context,
-        (ImmutableArray<TargetMethodCaptureContext> Endpoints, ImmutableArray<TargetGroupCaptureContext> Groups) tree)
+    public static void Generate(
+        SourceProductionContext context,
+        (BuilderCaptureContext Builder, (
+            ImmutableArray<TargetMethodCaptureContext> Endpoints, 
+            ImmutableArray<TargetGroupCaptureContext> Groups) 
+            Tree) builderContext)
     {
-        if (tree.Endpoints.IsDefaultOrEmpty && tree.Groups.IsDefaultOrEmpty)
+        var builder = new StringBuilder();
+        
+        if (!builderContext.Builder.AddStencilWasInvoked)
+        {
+            builder.CreateServiceRegistration([], []);
+            
+            context.AddSource($"Registrar.Scribbly.Stencil.ServiceRegistration.g.cs", builder.ToString());
+            return;
+        }
+        var (endpoints, groups) = builderContext.Tree;
+        
+        if (endpoints.IsDefaultOrEmpty && groups.IsDefaultOrEmpty)
         {
             return;
         }
         
-        var builder = new StringBuilder()
-            .CreateServiceRegistrar(tree.Endpoints, tree.Groups);
+        builder.CreateServiceRegistration(endpoints, groups);
         
-        context.AddSource($"Registrar.Scribbly.Stencil.Builder.g.cs", builder.ToString());
+        context.AddSource($"Registrar.Scribbly.Stencil.ServiceRegistration.g.cs", builder.ToString());
     }
 }

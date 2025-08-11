@@ -1,7 +1,10 @@
 ﻿// ReSharper disable SuggestVarOrType_Elsewhere
 
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Scribbly.Stencil.Builder;
+using Scribbly.Stencil.Builder.Context;
+using Scribbly.Stencil.Builder.Factories;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Groups;
 
@@ -24,6 +27,14 @@ public partial class EndpointGenerator : IIncrementalGenerator
             .Select(static (type, _) => TransformGroupType(type!.Value))
             .WithComparer(TargetGroupCaptureContextComparer.Instance);
         
+        IncrementalValuesProvider<BuilderCaptureContext> stencilBuilderProvider = context.SyntaxProvider
+            .CreateSyntaxProvider(BuilderInvocationSyntacticPredicate, BuilderInvocationSemanticTransform)
+            .Where(static (type) => type.HasValue)
+            .Select(static (type, _) => TransformBuilderInvocationType(type!.Value))
+            .WithComparer(BuilderCaptureContextComparer.Instance);
+        
+        context.RegisterPostInitializationOutput(PostInitializationCallback);
+        
         context.RegisterSourceOutput(endpointProvider, EndpointHandlerExecution.Generate);
         context.RegisterSourceOutput(endpointProvider, EndpointExtensionsExecution.Generate);
         
@@ -38,6 +49,15 @@ public partial class EndpointGenerator : IIncrementalGenerator
         var collectedGroups = routeGroupProvider.Collect();
         var routeTree = collectedEndpoints.Combine(collectedGroups);
         context.RegisterSourceOutput(routeTree, GroupRegistrarExecution.Generate);
-        context.RegisterSourceOutput(routeTree, BuilderRegistrarExecution.Generate);
+        
+        var dependencyInjection = stencilBuilderProvider.Combine(routeTree);
+        context.RegisterSourceOutput(dependencyInjection, BuilderRegistrarExecution.Generate);
+    }
+    
+    private static void PostInitializationCallback(IncrementalGeneratorPostInitializationContext context)
+    {
+        var builder = new StringBuilder().CreateServiceRegistrar();
+        context.AddSource($"Registrar.Scribbly.Stencil.ServiceExtensions.g.cs", builder.ToString());
     }
 }
+
