@@ -22,7 +22,8 @@ A framework for organizing and generating minimal API endpoints.
 1. [🎁 Packages](#packages)
 2. [🎯 Endpoints](#Endpoints)
 3. [🛒 Groups](#Groups)
-4. [🥣 Cookbook](#Cookbook)
+4. [💉 Dependency Injection](#💉_Dependency_Injection)
+5. [🥣 Cookbook](#Cookbook)
 
 ## Example
 
@@ -324,6 +325,44 @@ public partial class LunchGroup
     {
         applicationRootBuilder.AddEndpointFilter<MyFilter>();
         // .....
+    }
+}
+```
+
+# 💉 Dependency Injection
+
+`Scribbly.Stencil` handlers and groups optionally support Dependency Injection using `Microsoft.Extensions.DependencyInjection`.
+To utilize dependencies from without your Groups and Handlers configuration callbacks simply invoke the ``AddStencil`` method
+
+```csharp
+builder.Services.AddStencil();
+```
+
+Optional declare a service lifetime for the handlers.  This can help use scoped services out of the box.
+
+```csharp
+builder.Services.AddStencil(options =>
+{
+    options.ServicesScope = ServiceLifetime.Scoped;
+});
+```
+
+Once registered your groups and handler classes will be resolved from the DI container and services MAY be injected.
+
+```csharp
+public class MyOptions
+{
+    public string[] Tags { get; set; } = ["Menu"];
+}
+
+[EndpointGroup("/menu", "Manage Menu Items")]
+[Configure]
+public partial class MenuGroup(IOptions<MyOptions> options)
+{
+    /// <inheritdoc />
+    public void Configure(IEndpointConventionBuilder applicationRootBuilder)
+    {
+        applicationRootBuilder.WithTags(options.Value.Tags);
     }
 }
 ```

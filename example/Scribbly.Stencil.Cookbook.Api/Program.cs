@@ -2,10 +2,14 @@
 using Scalar.AspNetCore;
 using Scribbly.Stencil;
 using Scribbly.Stencil.Cookbook.ApiService;
+using Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+builder.Services.Configure<MyOptions>(
+    builder.Configuration.GetSection(nameof(MyOptions)));
 
 builder.Services.AddProblemDetails();
 
