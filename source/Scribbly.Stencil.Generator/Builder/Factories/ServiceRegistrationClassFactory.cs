@@ -21,7 +21,7 @@ public static class ServiceRegistrationClassFactory
                               /// </summary>
                               public static partial class 
                               """)
-            .Append(BuilderExtensionsClass.TypeName)
+            .AppendLine(BuilderExtensionsClass.TypeName)
             .AppendLine("""
                         {
                             /// <summary>

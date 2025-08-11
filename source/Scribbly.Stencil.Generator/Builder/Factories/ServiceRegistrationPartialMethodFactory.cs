@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using Scribbly.Stencil.Endpoints;
-using Scribbly.Stencil.Factories;
 using Scribbly.Stencil.Groups;
 
 namespace Scribbly.Stencil.Builder.Factories;
@@ -19,14 +18,17 @@ public static class ServiceRegistrationPartialMethodFactory
     private static StringBuilder CreateServiceRegistrarHeader(this StringBuilder builder)
     {
         return builder.AppendLine("""
+                                  
+                                  using Microsoft.Extensions.DependencyInjection;
+                                  
                                   namespace Scribbly.Stencil;
 
                                   /// <summary>
                                   /// Extensions used to register the Stencil application with your DI container.
                                   /// </summary>
-                                  public static partial class 
                                   """)
-            .Append(BuilderExtensionsClass.TypeName)
+            .Append("public static partial class ")
+            .AppendLine(BuilderExtensionsClass.TypeName)
             .AppendLine("{");
     }
     
