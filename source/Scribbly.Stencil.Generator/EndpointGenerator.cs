@@ -27,18 +27,24 @@ public partial class EndpointGenerator : IIncrementalGenerator
             .Select(static (type, _) => TransformGroupType(type!.Value))
             .WithComparer(TargetGroupCaptureContextComparer.Instance);
         
-        IncrementalValuesProvider<BuilderCaptureContext> stencilBuilderProvider = context.SyntaxProvider
-            .CreateSyntaxProvider(BuilderInvocationSyntacticPredicate, BuilderInvocationSemanticTransform)
-            .Where(static (type) => type.HasValue)
-            .Select(static (type, _) => TransformBuilderInvocationType(type!.Value))
-            .WithComparer(BuilderCaptureContextComparer.Instance);
+        IncrementalValueProvider<BuilderCaptureContext?> stencilBuilderProvider =
+            context.SyntaxProvider
+                .CreateSyntaxProvider(BuilderInvocationSyntacticPredicate, BuilderInvocationSemanticTransform)
+                .Where(static type => type.HasValue)
+                .Select(static (type, _) => TransformBuilderInvocationType(type!.Value))
+                .WithComparer(BuilderCaptureContextComparer.Instance)
+                .Collect()
+                .Select(static (list, _) => list.FirstOrDefault());
         
         context.RegisterPostInitializationOutput(PostInitializationCallback);
+
+        var endpointBuilderProvider = endpointProvider.Combine(stencilBuilderProvider);
         
         context.RegisterSourceOutput(endpointProvider, EndpointHandlerExecution.Generate);
-        context.RegisterSourceOutput(endpointProvider, EndpointExtensionsExecution.Generate);
+        context.RegisterSourceOutput(endpointBuilderProvider, EndpointExtensionsExecution.Generate);
         
         var collectedEndpoints = endpointProvider.Collect();
+        
         context.RegisterSourceOutput(collectedEndpoints, EndpointRegistrarExecution.Generate);
         
         context.RegisterSourceOutput(routeGroupProvider, GroupBuilderExecution.Generate);

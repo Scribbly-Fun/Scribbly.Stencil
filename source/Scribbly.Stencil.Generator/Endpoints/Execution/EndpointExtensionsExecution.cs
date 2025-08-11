@@ -1,4 +1,5 @@
 ﻿using System.Dynamic;
+using Scribbly.Stencil.Builder.Context;
 using Scribbly.Stencil.Endpoints.Factories;
 
 namespace Scribbly.Stencil.Endpoints;
@@ -12,9 +13,11 @@ public class EndpointExtensionsExecution
     /// Writes the captured information about the handle method as a Minimal API endpoint.
     /// </summary>
     /// <param name="context">Generator Context</param>
-    /// <param name="subject">Captured endpoint combined with the endpoints Context</param>
-    public static void Generate(SourceProductionContext context, TargetMethodCaptureContext subject)
+    /// <param name="captureContext">Captured endpoint combined with the endpoints Context</param>
+    public static void Generate(SourceProductionContext context, (TargetMethodCaptureContext subject, BuilderCaptureContext? builderCtx) captureContext)
     {
+        var (subject, builderCtx) = captureContext;
+        
         var @namespace = subject.Namespace is not null 
             ? $"namespace {subject.Namespace};"
             : string.Empty;
@@ -38,9 +41,9 @@ public class EndpointExtensionsExecution
                   /// <summary>
                   /// Maps the endpoint {{subject.TypeName}} to an endpoint builder {{subject.MemberOf}} with the route {{subject.HttpMethod}} {{subject.HttpRoute}} 
                   /// </summary>
-                  public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{{subject.TypeName}}{{subject.MethodName}}(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
+                  public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder {{new StringBuilder().CreateHandleExtensionMethodDeclaration(subject, builderCtx)}}
                   {
-                      var scribblyEndpoint = new global::{{subject.Namespace}}.{{subject.TypeName}}();
+                      {{new StringBuilder().CreateNewEndpoint(subject, builderCtx)}}
 
                       var endpointConventionBuilder = scribblyEndpoint.{{subject.CreateEndpointMappingMethodName()}}(builder);
 

@@ -12,10 +12,10 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddStencil(options =>
-{
-    options.ServicesScope = ServiceLifetime.Transient;
-});
+// builder.Services.AddStencil(options =>
+// {
+//     options.ServicesScope = ServiceLifetime.Transient;
+// });
 
 var app = builder.Build();
 
@@ -32,5 +32,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapStencilApp();
+
+using global::Microsoft.Extensions.DependencyInjection.IServiceScope scope = app.Services.CreateScope();
 
 app.Run();

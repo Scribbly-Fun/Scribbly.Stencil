@@ -12,14 +12,14 @@ public class BuilderRegistrarExecution
 {
     public static void Generate(
         SourceProductionContext context,
-        (BuilderCaptureContext Builder, (
+        (BuilderCaptureContext? Builder, (
             ImmutableArray<TargetMethodCaptureContext> Endpoints, 
             ImmutableArray<TargetGroupCaptureContext> Groups) 
             Tree) builderContext)
     {
         var builder = new StringBuilder();
         
-        if (!builderContext.Builder.AddStencilWasInvoked)
+        if (builderContext.Builder is not {AddStencilWasInvoked: true })
         {
             builder.CreateServiceRegistration([], []);
             
