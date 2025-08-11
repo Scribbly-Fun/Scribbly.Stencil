@@ -22,7 +22,7 @@ A framework for organizing and generating minimal API endpoints.
 1. [🎁 Packages](#packages)
 2. [🎯 Endpoints](#Endpoints)
 3. [🛒 Groups](#Groups)
-4. [💉 Dependency Injection](#💉_Dependency_Injection)
+4. [💉 Dependency Injection](#💉DependencyInjection)
 5. [🥣 Cookbook](#Cookbook)
 
 ## Example
