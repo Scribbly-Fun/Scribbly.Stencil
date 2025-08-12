@@ -12,8 +12,8 @@ public class MyOptions
 public partial class MenuGroup(IOptions<MyOptions> options)
 {
     /// <inheritdoc />
-    public void Configure(IEndpointConventionBuilder applicationRootBuilder)
+    public void Configure(RouteGroupBuilder menuGroupBuilder)
     {
-        applicationRootBuilder.WithTags(options.Value.Tags);
+
     }
 }

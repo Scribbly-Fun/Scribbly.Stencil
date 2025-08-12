@@ -6,7 +6,7 @@
 public partial class BreakfastGroup
 {
     /// <inheritdoc />
-    public void Configure(IEndpointConventionBuilder breakfastGroupBuilder)
+    public void Configure(RouteGroupBuilder breakfastGroupBuilder)
     {
         
     }

@@ -5,9 +5,9 @@
 [GroupMember<MenuGroup>]
 public partial class LunchGroup
 {
+
     /// <inheritdoc />
-    public void Configure(IEndpointConventionBuilder lunchGroupBuilder)
+    public void Configure(RouteGroupBuilder lunchGroupBuilder)
     {
-        lunchGroupBuilder.ProducesProblem(404);
     }
 }
