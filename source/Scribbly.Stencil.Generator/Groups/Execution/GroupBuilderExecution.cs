@@ -46,13 +46,13 @@ public static class GroupBuilderExecution
               {
                   public interface I{{subject.TypeName}}Configure: global::Scribbly.Stencil.{{ConfigureMarkerInterface.TypeName}}
                   {
-                      void Configure(global::Microsoft.AspNetCore.Builder.IEndpointConventionBuilder {{builderParameter}}Builder);
+                      void Configure(global::Microsoft.AspNetCore.Routing.RouteGroupBuilder {{builderParameter}}Builder);
                   }
 
                   /// <summary>
                   /// Maps the endpoint group {{subject.TypeName}} to a endpoint builder with the routing prefix {{subject.TypeName}}.
                   /// </summary>
-                  public global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{{subject.TypeName}}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
+                  public global::Microsoft.AspNetCore.Routing.RouteGroupBuilder Map{{subject.TypeName}}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
                   {
                       var group = builder.MapGroup("{{subject.RoutePrefix}}");
 
@@ -94,7 +94,7 @@ public static class GroupBuilderExecution
                   /// <summary>
                   /// Maps the endpoint group {{subject.TypeName}} to a endpoint builder with the routing prefix {{subject.TypeName}}.
                   /// </summary>
-                  public global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{{subject.TypeName}}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
+                  public global::Microsoft.AspNetCore.Routing.RouteGroupBuilder Map{{subject.TypeName}}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
                   {
                       var group = builder.MapGroup("{{subject.RoutePrefix}}");
 

@@ -110,7 +110,7 @@ public static class GroupRegistrarExecution
                         /// <summary>
                         /// Maps all Stencil generated groups and endpoints to your root application builder or endpoint group.
                         /// </summary>   
-                        public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapStencilApp(this global::Microsoft.AspNetCore.Builder.WebApplication webApplication, string? prefix = null)
+                        public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapStencilApp(this global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder webApplication, string? prefix = null)
                         { 
                             global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder app = webApplication;  
                             
