@@ -22,7 +22,7 @@ public partial class Put_Endpoint_ConfigureInterface_Tests
 
     /// <inheritdoc />
 #pragma warning disable xUnit1013
-    public void ConfigurePut(IEndpointConventionBuilder putBuilder)
+    public void ConfigurePut(RouteHandlerBuilder putBuilder)
 #pragma warning restore xUnit1013
     {
     }

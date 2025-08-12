@@ -22,7 +22,7 @@ public partial class Post_Endpoint_ConfigureInterface_Tests
 
     /// <inheritdoc />
 #pragma warning disable xUnit1013
-    public void ConfigurePost(IEndpointConventionBuilder postBuilder)
+    public void ConfigurePost(RouteHandlerBuilder postBuilder)
 #pragma warning restore xUnit1013
     {
     }
