@@ -76,13 +76,32 @@ public static IEndpointRouteBuilder MapScribblyEndpoints(this IEndpointRouteBuil
 4. Simply Map Your Application
 
 ```csharp
+var app = builder.Build();
 app.MapStencilApp();
 ```
 
 *Optionally Add a Group or Route Prefix*
 
 ```csharp
+var app = builder.Build();
 app.MapStencilApp("/api");
+```
+
+*Optionally map the Stencil app to a Group*
+
+```csharp
+var app = builder.Build();
+
+var group = app
+    .MapGroup("/group")
+    .RequireAuthorization()
+    .AddEndpointFilterFactory(((context, @delegate) =>
+    {
+        // ....
+        return @delegate;
+        
+    }))
+    .MapStencilApp();
 ```
 
 # 🎯 Endpoints
@@ -226,7 +245,7 @@ public partial class BreakfastEndpoints
     }
 
     /// <inheritdoc />
-    public void ConfigurePutBreakfastMenu(IEndpointConventionBuilder putBreakfastMenuBuilder)
+    public void ConfigurePutBreakfastMenu(RouteHandlerBuilder putBreakfastMenuBuilder)
     {
         putBreakfastMenuBuilder.ProducesProblem(404);
     }
@@ -321,7 +340,7 @@ Your type will now implement a custom interface used by the code generator.  Thi
 public partial class LunchGroup
 {
     /// <inheritdoc />
-    public void Configure(IEndpointConventionBuilder lunchGroupBuilder)
+    public void Configure(RouteGroupBuilder lunchGroupBuilder)
     {
         applicationRootBuilder.AddEndpointFilter<MyFilter>();
         // .....
@@ -360,7 +379,7 @@ public class MyOptions
 public partial class MenuGroup(IOptions<MyOptions> options)
 {
     /// <inheritdoc />
-    public void Configure(IEndpointConventionBuilder applicationRootBuilder)
+    public void Configure(RouteGroupBuilder applicationRootBuilder)
     {
         applicationRootBuilder.WithTags(options.Value.Tags);
     }

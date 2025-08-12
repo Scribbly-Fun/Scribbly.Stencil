@@ -54,13 +54,13 @@ public partial class {subject.TypeName}: global::{subject.Namespace}.{subject.Ty
 {{
     public interface I{subject.MethodName}Configure: global::Scribbly.Stencil.{ConfigureMarkerInterface.TypeName}
     {{
-        void Configure{subject.MethodName}(global::Microsoft.AspNetCore.Builder.IEndpointConventionBuilder {builderParameter}Builder);
+        void Configure{subject.MethodName}(global::Microsoft.AspNetCore.Builder.RouteHandlerBuilder {builderParameter}Builder);
     }}
 
     /// <summary>
     /// Maps the method {subject.MethodName} to an Endpoint group with the Route {subject.HttpMethod?.ToUpper()} {subject.HttpRoute}.
     /// </summary>
-    public global::Microsoft.AspNetCore.Builder.IEndpointConventionBuilder Map{subject.TypeName}{subject.MethodName}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
+    public global::Microsoft.AspNetCore.Builder.RouteHandlerBuilder Map{subject.TypeName}{subject.MethodName}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
     {{
         var endpoint = builder.Map{subject.HttpMethod}(""{subject.HttpRoute}"", {subject.MethodName});
 
@@ -105,13 +105,13 @@ public partial class {subject.TypeName}
     /// <summary>
     /// Maps the method {subject.MethodName} to an Endpoint group with the Route {subject.HttpMethod?.ToUpper()} {subject.HttpRoute}.
     /// </summary>
-    public global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder Map{subject.TypeName}{subject.MethodName}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
+    public global::Microsoft.AspNetCore.Builder.RouteHandlerBuilder Map{subject.TypeName}{subject.MethodName}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
     {{
         var endpoint = builder.Map{subject.HttpMethod}(""{subject.HttpRoute}"", {subject.MethodName});
 
 {subject.AddApiDocumentation()}
         
-        return builder;
+        return endpoint;
     }}
 }}
 ";

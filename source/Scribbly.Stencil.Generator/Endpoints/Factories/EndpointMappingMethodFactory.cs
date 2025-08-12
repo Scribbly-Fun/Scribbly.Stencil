@@ -9,8 +9,8 @@ public static class EndpointMappingMethodNameFactory
     {
         return new StringBuilder().CreateEndpointMappingMethodName(subject);
     }
-    
-    public static StringBuilder CreateEndpointMappingMethodName(this StringBuilder sb, TargetMethodCaptureContext subject)
+
+    private static StringBuilder CreateEndpointMappingMethodName(this StringBuilder sb, TargetMethodCaptureContext subject)
     {
         return sb.Append("Map").Append(subject.TypeName).Append(subject.MethodName);
     }

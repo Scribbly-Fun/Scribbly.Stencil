@@ -12,6 +12,6 @@ public static class ServiceScopeFactory
             return sb;
         }
 
-        return sb.AppendLine("        using global::Microsoft.Extensions.DependencyInjection.IServiceScope scope = webApplication.Services.CreateScope();");
+        return sb.AppendLine("        using global::Microsoft.Extensions.DependencyInjection.IServiceScope scope = app.ServiceProvider.CreateScope();");
     }
 }

@@ -41,14 +41,13 @@ public class EndpointExtensionsExecution
                   /// <summary>
                   /// Maps the endpoint {{subject.TypeName}} to an endpoint builder {{subject.MemberOf}} with the route {{subject.HttpMethod}} {{subject.HttpRoute}} 
                   /// </summary>
-                  public static global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder {{new StringBuilder().CreateHandleExtensionMethodDeclaration(subject, builderCtx)}}
+                  public static global::Microsoft.AspNetCore.Builder.RouteHandlerBuilder {{new StringBuilder().CreateHandleExtensionMethodDeclaration(subject, builderCtx)}}
                   {
                       {{new StringBuilder().CreateNewEndpoint(subject, builderCtx)}}
 
-                      var endpointConventionBuilder = scribblyEndpoint.{{subject.CreateEndpointMappingMethodName()}}(builder);
-
+                      var endpointBuilder = scribblyEndpoint.{{subject.CreateEndpointMappingMethodName()}}(builder);
                       {{CreateConfigureInvocation(subject)}}
-                      return builder;
+                      return endpointBuilder;
                   }
               }
               """;
@@ -63,7 +62,7 @@ public class EndpointExtensionsExecution
             return string.Empty;
         }
         return subject.IsConfigurable 
-            ? $"scribblyEndpoint.Configure{subject.MethodName}(endpointConventionBuilder);" 
+            ? $"scribblyEndpoint.Configure{subject.MethodName}(endpointBuilder);" 
             : string.Empty;
     }
 }

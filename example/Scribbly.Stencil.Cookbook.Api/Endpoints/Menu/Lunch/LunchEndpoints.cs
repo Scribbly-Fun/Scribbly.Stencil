@@ -28,10 +28,9 @@ public partial class LunchEndpoints
     {
         return new { id = id };
     }
-    
+
     /// <inheritdoc />
-    public void ConfigureGetLunchMenu(IEndpointConventionBuilder getLunchMenuBuilder)
+    public void ConfigureGetLunchMenu(RouteHandlerBuilder getLunchMenuBuilder)
     {
-        
     }
 }

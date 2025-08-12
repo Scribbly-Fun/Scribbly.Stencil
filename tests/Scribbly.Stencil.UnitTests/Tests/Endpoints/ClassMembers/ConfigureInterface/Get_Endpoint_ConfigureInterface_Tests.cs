@@ -22,7 +22,7 @@ public partial class Get_Endpoint_ConfigureInterface_Tests
 
     /// <inheritdoc />
 #pragma warning disable xUnit1013
-    public void ConfigureGet(IEndpointConventionBuilder getBuilder)
+    public void ConfigureGet(RouteHandlerBuilder getBuilder)
 #pragma warning restore xUnit1013
     {
     }

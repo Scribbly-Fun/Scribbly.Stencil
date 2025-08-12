@@ -22,7 +22,7 @@ public partial class Delete_Endpoint_ConfigureInterface_Tests
 
     /// <inheritdoc />
 #pragma warning disable xUnit1013
-    public void ConfigureDelete(IEndpointConventionBuilder getBuilder)
+    public void ConfigureDelete(RouteHandlerBuilder getBuilder)
 #pragma warning restore xUnit1013
     {
     }

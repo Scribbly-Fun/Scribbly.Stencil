@@ -55,6 +55,6 @@ public partial class Post_Endpoint_Method_Tests
             .ParameterType
             .Name
             .Should()
-            .Be("IEndpointRouteBuilder");
+            .Be("RouteHandlerBuilder");
     }
 }
