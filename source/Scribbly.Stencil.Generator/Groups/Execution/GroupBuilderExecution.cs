@@ -42,7 +42,7 @@ public static class GroupBuilderExecution
                         """)
             .AppendLine(@namespace)
             .AppendLine($$"""
-              public partial class {{subject.TypeName}}: global::{{subject.Namespace}}.{{subject.TypeName}}.I{{subject.TypeName}}Configure, global::Scribbly.Stencil.IGroup
+              public partial class {{subject.TypeName}}: global::{{subject.Namespace}}.{{subject.TypeName}}.I{{subject.TypeName}}Configure, global::{{GroupMarkerInterface.TypeFullName}}
               {
                   public interface I{{subject.TypeName}}Configure: global::Scribbly.Stencil.{{ConfigureMarkerInterface.TypeName}}
                   {
@@ -89,7 +89,7 @@ public static class GroupBuilderExecution
 
               {{@namespace}}
 
-              public partial class {{subject.TypeName}}: global::Scribbly.Stencil.IGroup
+              public partial class {{subject.TypeName}}: global::{{GroupMarkerInterface.TypeFullName}}
               {
                   /// <summary>
                   /// Maps the endpoint group {{subject.TypeName}} to a endpoint builder with the routing prefix {{subject.TypeName}}.

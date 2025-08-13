@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Scribbly.Stencil.Attributes.Endpoints;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Groups;
 using Scribbly.Stencil.Types.Attributes;

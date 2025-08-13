@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-
-namespace Scribbly.Stencil.Attributes.Endpoints;
+﻿namespace Scribbly.Stencil.Endpoints;
 
 internal static class DeleteEndpointAttribute
 {
