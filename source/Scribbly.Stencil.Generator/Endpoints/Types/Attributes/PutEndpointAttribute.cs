@@ -1,4 +1,4 @@
-﻿namespace Scribbly.Stencil.Attributes.Endpoints;
+﻿namespace Scribbly.Stencil.Endpoints;
 
 internal static class PutEndpointAttribute
 {

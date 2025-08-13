@@ -14,6 +14,6 @@ public partial class MenuGroup(IOptions<MyOptions> options)
     /// <inheritdoc />
     public void Configure(RouteGroupBuilder menuGroupBuilder)
     {
-
+        menuGroupBuilder.WithTags(options.Value.Tags);
     }
 }
