@@ -13,7 +13,7 @@
 <!-- <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath> -->
     
   </PropertyGroup>
-  
+
   <!--  Here we are conditionally packing the assembly only when running dotnet pack -P:IsPacking='true' 
         This ensures our local project reference assembly isn't included twice.  See Cookbook.Api.csproj for direct project refernece.-->
   <ItemGroup Condition="'$(IsPacking)' == 'true'">

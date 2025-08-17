@@ -17,7 +17,8 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddStencil(options =>
 {
-    options.ServicesScope = ServiceLifetime.Transient;
+    options.EndpointsScope = StencilOptions.ServiceScope.Scoped;
+    options.GroupsScope = StencilOptions.ServiceScope.Scoped;
 });
 
 var app = builder.Build();

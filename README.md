@@ -359,10 +359,13 @@ builder.Services.AddStencil();
 
 Optional declare a service lifetime for the handlers.  This can help use scoped services out of the box.
 
+*Note the StencilOptions.ServiceScope will be mapped to a Microsoft.Extensions.DependencyInjection.ServiceLifetime, plans to support other DI frameworks in future exist*
+
 ```csharp
 builder.Services.AddStencil(options =>
 {
-    options.ServicesScope = ServiceLifetime.Scoped;
+    options.EndpointsScope = StencilOptions.ServiceScope.Scoped;
+    options.GroupsScope = StencilOptions.ServiceScope.Scoped;
 });
 ```
 

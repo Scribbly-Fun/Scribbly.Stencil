@@ -64,8 +64,10 @@ public partial class EndpointGenerator : IIncrementalGenerator
     
     private static void PostInitializationCallback(IncrementalGeneratorPostInitializationContext context)
     {
-        var builder = new StringBuilder().CreateServiceRegistrar();
-        context.AddSource($"Registrar.Scribbly.Stencil.ServiceExtensions.g.cs", builder.ToString());
+        var registrar = new StringBuilder().CreateServiceRegistrar();
+        var scopeMapping = new StringBuilder().CreateServiceScopeMapping();
+        context.AddSource($"Registrar.Scribbly.Stencil.ServiceExtensions.g.cs", registrar.ToString());
+        context.AddSource($"Registrar.Scribbly.Stencil.ScopeExtensions.g.cs", scopeMapping.ToString());
     }
 }
 
