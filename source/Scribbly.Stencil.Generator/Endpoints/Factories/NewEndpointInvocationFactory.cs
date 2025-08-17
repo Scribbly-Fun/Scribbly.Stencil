@@ -10,13 +10,13 @@ public static class NewEndpointInvocationFactory
         if (builderCtx is not {AddStencilWasInvoked: true})
         {
             return builder
-                .Append("var scribblyEndpoint = new global::")
+                .Append("        var scribblyEndpoint = new global::")
                 .Append(subject.Namespace).Append('.').Append(subject.TypeName)
                 .Append("();");
         }
 
         return builder
-            .Append("var scribblyEndpoint = scope.ServiceProvider.GetRequiredService<global::")
+            .Append("        var scribblyEndpoint = scope.ServiceProvider.GetRequiredService<global::")
             .Append(subject.Namespace).Append('.').Append(subject.TypeName)
             .Append(">();");
     }

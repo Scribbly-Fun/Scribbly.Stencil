@@ -15,50 +15,61 @@ public partial class EndpointGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        IncrementalValuesProvider<TargetMethodCaptureContext> endpointProvider = context.SyntaxProvider
+        // ----------------------> Registered Initialization Types
+        context.RegisterPostInitializationOutput(PostInitializationCallback);
+        
+         // ----------------------> Capture Providers
+        var endpointProvider = context.SyntaxProvider
             .CreateSyntaxProvider(HandlerSyntacticPredicate, HandlerSemanticTransform)
-            .Where(static (type) => type.HasValue)
+            .Where(static type => type.HasValue)
             .Select(static (type, _) => TransformHandlerType(type!.Value))
             .WithComparer(TargetMethodCaptureContextComparer.Instance);
-        
-        IncrementalValuesProvider<TargetGroupCaptureContext> routeGroupProvider = context.SyntaxProvider
+
+        var routeGroupProvider = context.SyntaxProvider
             .CreateSyntaxProvider(GroupSyntacticPredicate, GroupSemanticTransform)
-            .Where(static (type) => type.HasValue)
+            .Where(static type => type.HasValue)
             .Select(static (type, _) => TransformGroupType(type!.Value))
             .WithComparer(TargetGroupCaptureContextComparer.Instance);
-        
-        IncrementalValueProvider<BuilderCaptureContext?> stencilBuilderProvider =
-            context.SyntaxProvider
-                .CreateSyntaxProvider(BuilderInvocationSyntacticPredicate, BuilderInvocationSemanticTransform)
-                .Where(static type => type.HasValue)
-                .Select(static (type, _) => TransformBuilderInvocationType(type!.Value))
-                .WithComparer(BuilderCaptureContextComparer.Instance)
-                .Collect()
-                .Select(static (list, _) => list.FirstOrDefault());
-        
-        context.RegisterPostInitializationOutput(PostInitializationCallback);
 
-        var endpointBuilderProvider = endpointProvider.Combine(stencilBuilderProvider);
+        var stencilBuilderProvider = context.SyntaxProvider
+            .CreateSyntaxProvider(BuilderInvocationSyntacticPredicate, BuilderInvocationSemanticTransform)
+            .Where(static type => type.HasValue)
+            .Select(static (type, _) => TransformBuilderInvocationType(type!.Value))
+            .WithComparer(BuilderCaptureContextComparer.Instance)
+            .Collect()
+            .Select(static (list, _) => list.FirstOrDefault());
+
+        // ----------------------> Collected Arrays
+        var collectedEndpoints = endpointProvider.Collect();
+        var collectedGroups   = routeGroupProvider.Collect();
+
+        // ----------------------> Combined Providers
+        var endpointBuilderProvider = endpointProvider
+            .Combine(stencilBuilderProvider);
         
+        var collectedEndpointsProvider = collectedEndpoints
+            .Combine(stencilBuilderProvider);
+        
+        var groupedEndpoints = routeGroupProvider
+            .Combine(stencilBuilderProvider)
+            .Combine(collectedEndpoints);
+
+        var routeTree = collectedEndpoints
+            .Combine(collectedGroups);
+        
+        var routeTreeProvider = routeTree
+            .Combine(stencilBuilderProvider);
+
+        var dependencyInjection = stencilBuilderProvider
+            .Combine(routeTree);
+
+        // ----------------------> Registered Source Outputs
         context.RegisterSourceOutput(endpointProvider, EndpointHandlerExecution.Generate);
         context.RegisterSourceOutput(endpointBuilderProvider, EndpointExtensionsExecution.Generate);
-        
-        var collectedEndpoints = endpointProvider.Collect();
-        var collectedEndpointsProvider = endpointProvider.Collect().Combine(stencilBuilderProvider);
-        
         context.RegisterSourceOutput(collectedEndpointsProvider, EndpointRegistrarExecution.Generate);
-        
         context.RegisterSourceOutput(routeGroupProvider, GroupBuilderExecution.Generate);
-        
-        var groupedEndpoints = routeGroupProvider.Combine(stencilBuilderProvider).Combine(collectedEndpoints);
         context.RegisterSourceOutput(groupedEndpoints, GroupExtensionsExecution.Generate);
-        
-        var collectedGroups = routeGroupProvider.Collect();
-        var routeTree = collectedEndpoints.Combine(collectedGroups);
-        var routeTreeProvider = routeTree.Combine(stencilBuilderProvider);
         context.RegisterSourceOutput(routeTreeProvider, GroupRegistrarExecution.Generate);
-        
-        var dependencyInjection = stencilBuilderProvider.Combine(routeTree);
         context.RegisterSourceOutput(dependencyInjection, BuilderRegistrarExecution.Generate);
     }
     
