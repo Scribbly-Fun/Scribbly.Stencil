@@ -1,6 +1,4 @@
-﻿using Scribbly.Stencil.Groups;
-
-namespace Scribbly.Stencil.Types.Attributes;
+﻿namespace Scribbly.Stencil.Types.Attributes;
 
 internal static class GroupMemberAttribute
 {
