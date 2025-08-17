@@ -43,7 +43,7 @@ public static class ServiceRegistrationPartialMethodFactory
                            """);
         foreach (var endpoint in endpoints)
         {
-            builder.Append("        services.Add(new ServiceDescriptor(typeof(global::").Append(endpoint.Namespace).Append('.').Append(endpoint.TypeName).Append("), ").Append("typeof(global::").Append(endpoint.Namespace).Append('.').Append(endpoint.TypeName).Append("), ").Append("options.ServicesScope").Append("));");
+            builder.Append("        services.Add(new ServiceDescriptor(typeof(global::").Append(endpoint.Namespace).Append('.').Append(endpoint.TypeName).Append("), ").Append("typeof(global::").Append(endpoint.Namespace).Append('.').Append(endpoint.TypeName).Append("), ").Append("options.EndpointsScope.ToLifetime()").Append("));");
             builder.AppendLine();
         }
         builder.AppendLine("    }");
@@ -61,7 +61,7 @@ public static class ServiceRegistrationPartialMethodFactory
                            """);
         foreach (var group in groups)
         {
-            builder.Append("        services.Add(new ServiceDescriptor(typeof(global::").Append(group.Namespace).Append('.').Append(group.TypeName).Append("), ").Append("typeof(global::").Append(group.Namespace).Append('.').Append(group.TypeName).Append("), ").Append("options.ServicesScope").Append("));");builder.AppendLine();
+            builder.Append("        services.Add(new ServiceDescriptor(typeof(global::").Append(group.Namespace).Append('.').Append(group.TypeName).Append("), ").Append("typeof(global::").Append(group.Namespace).Append('.').Append(group.TypeName).Append("), ").Append("options.GroupsScope.ToLifetime()").Append("));");builder.AppendLine();
         }
         builder.AppendLine("    }");
         return builder;
