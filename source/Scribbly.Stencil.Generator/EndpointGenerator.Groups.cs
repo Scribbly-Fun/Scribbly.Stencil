@@ -29,25 +29,11 @@ public partial class EndpointGenerator
         if (classSymbol is null)
             return null;
 
-        var groupAtt = classSymbol.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == EndpointGroupAttribute.TypeFullName);
-
-        if (groupAtt is null)
-        {
-            return null;
-        }
-
-        var prefix = groupAtt.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString();
-        var tag = groupAtt.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString();
-
-        if (prefix is null)
-        {
-            return null;
-        }
-
-        var configureAtt = classSymbol.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName);
-
+        string? prefix = null;
+        string? tag = null; 
+        
+        var groupHasConfiguration = false;
+        
         var memberAttributeSymbol = context.SemanticModel.Compilation
             .GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
 
@@ -55,6 +41,17 @@ public partial class EndpointGenerator
 
         foreach (var attribute in classSymbol.GetAttributes())
         {
+            if (attribute.AttributeClass?.ToDisplayString() == EndpointGroupAttribute.TypeFullName)
+            {
+                prefix = attribute.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString();
+                tag = attribute.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString();
+            }
+            
+            if (attribute.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName)
+            {
+                groupHasConfiguration = true;
+            }
+            
             if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition,
                     memberAttributeSymbol))
             {
@@ -67,6 +64,11 @@ public partial class EndpointGenerator
                 genericTypeName = typeArg.ToDisplayString();
             }
         }
+        
+        if (prefix is null)
+        {
+            return null;
+        }
 
         return (classSymbol, new TargetGroupCaptureContext(
             classSymbol.ContainingNamespace.ToDisplayString(),
@@ -74,7 +76,7 @@ public partial class EndpointGenerator
             prefix,
             tag,
             genericTypeName,
-            configureAtt is not null));
+            groupHasConfiguration));
     }
 
     private static bool ValidateGroupCandidateModifiers(ClassDeclarationSyntax? candidate)

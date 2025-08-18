@@ -48,80 +48,104 @@ public partial class EndpointGenerator
         {
             return null;
         }
-
-        var httpVerbEndpointAttr = methodAttributes
-            .FirstOrDefault(attr => 
-                attr.AttributeClass?.ToDisplayString() == GetEndpointAttribute.TypeFullName ||
-                attr.AttributeClass?.ToDisplayString() == PostEndpointAttribute.TypeFullName ||
-                attr.AttributeClass?.ToDisplayString() == PutEndpointAttribute.TypeFullName ||
-                attr.AttributeClass?.ToDisplayString() == DeleteEndpointAttribute.TypeFullName);
         
-        var capture = httpVerbEndpointAttr switch
+        var memberAttributeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
+        
+        TargetMethodCaptureContext? capture = null;
+        
+        string? methodMembership = null;
+        string? classMembership = null;
+
+        var methodConfigurationMode = false;
+        var classConfigurationMode = false;
+        
+        
+        foreach (var methodAttribute in methodAttributes)
         {
-            {  AttributeClass: { Name: GetEndpointAttribute.TypeName }} => CaptureGetContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
-            {  AttributeClass: { Name: PostEndpointAttribute.TypeName }}  => CapturePostContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
-            {  AttributeClass: { Name: PutEndpointAttribute.TypeName }}  => CapturePutContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
-            {  AttributeClass: { Name: DeleteEndpointAttribute.TypeName }}  => CaptureDeleteContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
-            _ => null
-        };
+            var attrClass = methodAttribute.AttributeClass;
+            if (attrClass is null)
+            {
+                continue;
+            }
+
+            if (attrClass.ToDisplayString() == GetEndpointAttribute.TypeFullName)
+            {
+                capture = CaptureHttpVerbContext(classSymbol, methodSymbol, methodAttribute, "Get");
+            }
+            if (attrClass.ToDisplayString() == PostEndpointAttribute.TypeFullName)
+            {
+                capture = CaptureHttpVerbContext(classSymbol, methodSymbol, methodAttribute, "Post");
+            }
+            if (attrClass.ToDisplayString() == PutEndpointAttribute.TypeFullName)
+            {
+                capture = CaptureHttpVerbContext(classSymbol, methodSymbol, methodAttribute, "Put");
+            }
+            if (attrClass.ToDisplayString() == DeleteEndpointAttribute.TypeFullName)
+            {
+                capture = CaptureHttpVerbContext(classSymbol, methodSymbol, methodAttribute, "Delete");
+            }
+            
+            if (SymbolEqualityComparer.Default.Equals(attrClass.OriginalDefinition, memberAttributeSymbol) && 
+                attrClass is { TypeArguments.Length: 1 } attrSymbol &&
+                attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            {
+                methodMembership = typeArg.ToDisplayString();
+            }
+            
+            if(attrClass.ToDisplayString() == ConfigureAttribute.TypeFullName)
+            {
+                methodConfigurationMode = true;
+            }
+        }
         
         if (capture is null)
         {
             return null;
         }
-
-        var memberAttributeSymbol = context.SemanticModel.Compilation
-            .GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
-
+        
         var classAttributes = classSymbol.GetAttributes();
         
-        capture.IsEndpointGroup = classAttributes
-            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == EndpointGroupAttribute.TypeFullName) != null;
-
-        if (!capture.IsEndpointGroup)
+        foreach (var classAttribute in classAttributes)
         {
-            foreach (var attribute in classAttributes)
+            var attrClass = classAttribute.AttributeClass;
+            if (attrClass is null)
             {
-                if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition,
-                        memberAttributeSymbol))
-                {
-                    continue;
-                }
-
-                if (attribute?.AttributeClass is { TypeArguments.Length: 1 } attrSymbol &&
-                    attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
-                {
-                    capture.MemberOf = typeArg.ToDisplayString();
-                    capture.GroupMode = TargetMethodCaptureContext.DeclarationMode.ClassDeclaration;
-                }
+                continue;
             }
-
-            foreach (var attribute in methodAttributes)
+            if(attrClass.ToDisplayString() == EndpointGroupAttribute.TypeFullName)
             {
-                if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition,
-                        memberAttributeSymbol))
-                {
-                    continue;
-                }
-
-                if (attribute?.AttributeClass is { TypeArguments.Length: 1 } attrSymbol &&
-                    attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
-                {
-                    capture.MemberOf = typeArg.ToDisplayString();
-                    capture.GroupMode = TargetMethodCaptureContext.DeclarationMode.MethodDeclaration;
-                }
+                capture.IsEndpointGroup =  true;
+            }
+            
+            if(attrClass.ToDisplayString() == ConfigureAttribute.TypeFullName) 
+            {
+                classConfigurationMode = true;
+            }
+            
+            if (SymbolEqualityComparer.Default.Equals(attrClass.OriginalDefinition, memberAttributeSymbol) && 
+                attrClass is { TypeArguments.Length: 1 } attrSymbol &&
+                attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            {
+                classMembership = typeArg.ToDisplayString();
             }
         }
         
-        if (classAttributes.FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null)
+        capture.MemberOf = methodMembership ?? classMembership;
+        capture.ConfigurationMode = (methodConfigurationMode, classConfigurationMode) switch
         {
-            capture.ConfigurationMode = TargetMethodCaptureContext.DeclarationMode.ClassDeclaration;
-        }
-        if(methodAttributes.FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName) != null)
+            (false, false) => TargetMethodCaptureContext.DeclarationMode.Na,
+            (true, false) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
+            (false, true) => TargetMethodCaptureContext.DeclarationMode.ClassDeclaration,
+            (true, true) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
+        };
+        capture.GroupMode = (methodMembership, classMembership) switch
         {
-            capture.ConfigurationMode = TargetMethodCaptureContext.DeclarationMode.MethodDeclaration;
-        }
-
+            (null, null) => TargetMethodCaptureContext.DeclarationMode.Na,
+            (not null, null) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
+            (null, not null) => TargetMethodCaptureContext.DeclarationMode.ClassDeclaration,
+            (not null, not null) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
+        };
+        
         return (classSymbol, capture);
     }
 
@@ -159,8 +183,7 @@ public partial class EndpointGenerator
             getEndpointAttr.ConstructorArguments.ElementAtOrDefault(2).Value?.ToString());
     }
 
-    private static TargetMethodCaptureContext CapturePostContext(INamedTypeSymbol classSymbol,
-        IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
+    private static TargetMethodCaptureContext CaptureHttpVerbContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr, string verb)
     {
         var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
         var methodName = methodSymbol.Name;
@@ -169,55 +192,7 @@ public partial class EndpointGenerator
             classSymbol.ContainingNamespace.ToDisplayString(),
             classSymbol.Name,
             methodName,
-            "Post",
-            httpRoute,
-            name,
-            description);
-    }
-
-    private static TargetMethodCaptureContext CapturePutContext(INamedTypeSymbol classSymbol,
-        IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
-    {
-        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-            classSymbol.ContainingNamespace.ToDisplayString(),
-            classSymbol.Name,
-            methodName,
-            "Put",
-            httpRoute,
-            name,
-            description);
-    }
-
-    private static TargetMethodCaptureContext CaptureDeleteContext(INamedTypeSymbol classSymbol,
-        IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
-    {
-        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-            classSymbol.ContainingNamespace.ToDisplayString(),
-            classSymbol.Name,
-            methodName,
-            "Delete",
-            httpRoute,
-            name,
-            description);
-    }
-
-    private static TargetMethodCaptureContext CaptureGetContext(INamedTypeSymbol classSymbol,
-        IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
-    {
-        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-            classSymbol.ContainingNamespace.ToDisplayString(),
-            classSymbol.Name,
-            methodName,
-            "Get",
+            verb,
             httpRoute,
             name,
             description);
