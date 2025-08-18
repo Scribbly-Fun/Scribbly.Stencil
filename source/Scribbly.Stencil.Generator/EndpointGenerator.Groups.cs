@@ -45,9 +45,8 @@ public partial class EndpointGenerator
             return null;
         }
 
-        var configureAtt = classSymbol.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName);
-
+        var groupHasConfiguration = false;
+        
         var memberAttributeSymbol = context.SemanticModel.Compilation
             .GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
 
@@ -55,6 +54,10 @@ public partial class EndpointGenerator
 
         foreach (var attribute in classSymbol.GetAttributes())
         {
+            if (attribute.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName)
+            {
+                groupHasConfiguration = true;
+            }
             if (!SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass?.OriginalDefinition,
                     memberAttributeSymbol))
             {
@@ -74,7 +77,7 @@ public partial class EndpointGenerator
             prefix,
             tag,
             genericTypeName,
-            configureAtt is not null));
+            groupHasConfiguration));
     }
 
     private static bool ValidateGroupCandidateModifiers(ClassDeclarationSyntax? candidate)
