@@ -58,10 +58,10 @@ public partial class EndpointGenerator
         
         var capture = httpVerbEndpointAttr switch
         {
-            {  AttributeClass: { Name: GetEndpointAttribute.TypeName }} => CaptureGetContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
-            {  AttributeClass: { Name: PostEndpointAttribute.TypeName }}  => CapturePostContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
-            {  AttributeClass: { Name: PutEndpointAttribute.TypeName }}  => CapturePutContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
-            {  AttributeClass: { Name: DeleteEndpointAttribute.TypeName }}  => CaptureDeleteContext(classSymbol, methodSymbol, httpVerbEndpointAttr),
+            {  AttributeClass.Name: GetEndpointAttribute.TypeName } => CaptureHttpVerbContext(classSymbol, methodSymbol, httpVerbEndpointAttr, "Get"),
+            {  AttributeClass.Name: PostEndpointAttribute.TypeName }  => CaptureHttpVerbContext(classSymbol, methodSymbol, httpVerbEndpointAttr, "Post"),
+            {  AttributeClass.Name: PutEndpointAttribute.TypeName }  => CaptureHttpVerbContext(classSymbol, methodSymbol, httpVerbEndpointAttr, "Put"),
+            {  AttributeClass.Name: DeleteEndpointAttribute.TypeName }  => CaptureHttpVerbContext(classSymbol, methodSymbol, httpVerbEndpointAttr, "Delete"),
             _ => null
         };
         
@@ -159,8 +159,7 @@ public partial class EndpointGenerator
             getEndpointAttr.ConstructorArguments.ElementAtOrDefault(2).Value?.ToString());
     }
 
-    private static TargetMethodCaptureContext CapturePostContext(INamedTypeSymbol classSymbol,
-        IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
+    private static TargetMethodCaptureContext CaptureHttpVerbContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr, string verb)
     {
         var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
         var methodName = methodSymbol.Name;
@@ -169,55 +168,7 @@ public partial class EndpointGenerator
             classSymbol.ContainingNamespace.ToDisplayString(),
             classSymbol.Name,
             methodName,
-            "Post",
-            httpRoute,
-            name,
-            description);
-    }
-
-    private static TargetMethodCaptureContext CapturePutContext(INamedTypeSymbol classSymbol,
-        IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
-    {
-        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-            classSymbol.ContainingNamespace.ToDisplayString(),
-            classSymbol.Name,
-            methodName,
-            "Put",
-            httpRoute,
-            name,
-            description);
-    }
-
-    private static TargetMethodCaptureContext CaptureDeleteContext(INamedTypeSymbol classSymbol,
-        IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
-    {
-        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-            classSymbol.ContainingNamespace.ToDisplayString(),
-            classSymbol.Name,
-            methodName,
-            "Delete",
-            httpRoute,
-            name,
-            description);
-    }
-
-    private static TargetMethodCaptureContext CaptureGetContext(INamedTypeSymbol classSymbol,
-        IMethodSymbol methodSymbol, AttributeData getEndpointAttr)
-    {
-        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-            classSymbol.ContainingNamespace.ToDisplayString(),
-            classSymbol.Name,
-            methodName,
-            "Get",
+            verb,
             httpRoute,
             name,
             description);
