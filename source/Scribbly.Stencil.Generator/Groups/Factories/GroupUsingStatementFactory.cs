@@ -15,7 +15,7 @@ public static class GroupUsingStatementFactory
         
         foreach (var name in namespaces.Distinct())
         {
-            builder.Append($"using ").Append(name).AppendLine(";");
+            builder.Append("using ").Append(name).AppendLine(";");
         }
         return builder.AppendLine();
     }
