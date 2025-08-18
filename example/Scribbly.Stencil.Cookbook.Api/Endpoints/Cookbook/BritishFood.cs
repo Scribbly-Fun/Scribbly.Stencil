@@ -1,4 +1,6 @@
-﻿namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Cookbook;
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Cookbook;
 
 [EndpointGroup("/food")]
 public partial class NotAGroup
@@ -41,5 +43,4 @@ public partial class BritishFood
     {
         return new { id = "Bad Food" };
     }
-    
 }

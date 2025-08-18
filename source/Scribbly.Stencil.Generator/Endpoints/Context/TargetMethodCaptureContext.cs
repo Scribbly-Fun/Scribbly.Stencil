@@ -52,6 +52,11 @@ public class TargetMethodCaptureContext : IComparable<TargetMethodCaptureContext
         IsEndpointGroup = isEndpointGroup;
     }
 
+    public TargetMethodCaptureContext()
+    {
+        
+    }
+
     public int CompareTo(TargetMethodCaptureContext? other)
     {
         if(other == null) return -1;
