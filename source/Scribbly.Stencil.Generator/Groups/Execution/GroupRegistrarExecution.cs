@@ -162,21 +162,6 @@ public static class GroupRegistrarExecution
         }
     }
     
-    private static string GroupUsingStatements(ImmutableArray<TargetGroupCaptureContext> groups, IEnumerable<TargetMethodCaptureContext> endpoints)
-    {
-        var builder = new StringBuilder();
-        var namespaces = new List<string?>();
-        
-        namespaces.AddRange(groups.Select(g => g.Namespace));
-        namespaces.AddRange(endpoints.Select(g => g.Namespace));
-        
-        foreach (var name in namespaces.Distinct())
-        {
-            builder.AppendLine($"using {name};");
-        }
-        return builder.ToString();
-    }
-    
     private static string CreateGroupName(TargetGroupCaptureContext? context)
     {
         return $"{context?.Namespace}_{context?.TypeName}".Replace(".", "_").ToLower();
