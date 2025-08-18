@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Text;
+using Microsoft.CodeAnalysis;
 using Scribbly.Stencil.Factories;
 
 namespace Scribbly.Stencil.Groups;
@@ -12,110 +13,128 @@ public static class GroupBuilderExecution
     /// <param name="subject">Captured Method Context</param>
     public static void Generate(SourceProductionContext context, TargetGroupCaptureContext subject)
     {
+        var builder = CreateFileHeader(subject);
+        
         if (subject.IsConfigurable)
         {
-            GenerateConfigurableGroup(context, subject);
-            return;
+            builder.GenerateConfigurableGroup(subject);
+        }
+        else
+        {
+            builder.GenerateSimpleGroup(subject);
         }
         
-        GenerateSimpleGroup(context, subject);
+        var groupName = subject.Namespace is null ? $"{subject.TypeName}" : $"{subject.Namespace}.{subject.TypeName}";
+        context.AddSource($"Group.{groupName}.g.cs", builder.ToString());
     }
     
-    private static void GenerateConfigurableGroup(SourceProductionContext context, TargetGroupCaptureContext subject)
+    private static void GenerateConfigurableGroup(this StringBuilder builder, TargetGroupCaptureContext subject)
     {
-        var @namespace = subject.Namespace is not null 
-            ? $"namespace {subject.Namespace};"
-            : string.Empty;
-        
         var span = new Span<char>(subject.TypeName!.ToCharArray());
-
         span[0] = char.ToLowerInvariant(span[0]);
-
         var builderParameter = new string(span.ToArray());
-
-        var groupCode = FileHeaderFactory.CreateFileHeader()
-            .AppendLine("""
-                        using Microsoft.AspNetCore.Builder;
-                        using Microsoft.AspNetCore.Http;
-                        using Microsoft.AspNetCore.Mvc;
-                        using Microsoft.AspNetCore.Routing;
-                        """)
-            .AppendLine(@namespace)
-            .AppendLine($$"""
-              public partial class {{subject.TypeName}}: global::{{subject.Namespace}}.{{subject.TypeName}}.I{{subject.TypeName}}Configure, global::{{GroupMarkerInterface.TypeFullName}}
-              {
-                  public interface I{{subject.TypeName}}Configure: global::Scribbly.Stencil.{{ConfigureMarkerInterface.TypeName}}
-                  {
-                      void Configure(global::Microsoft.AspNetCore.Routing.RouteGroupBuilder {{builderParameter}}Builder);
-                  }
-
-                  /// <summary>
-                  /// Maps the endpoint group {{subject.TypeName}} to a endpoint builder with the routing prefix {{subject.TypeName}}.
-                  /// </summary>
-                  public global::Microsoft.AspNetCore.Routing.RouteGroupBuilder Map{{subject.TypeName}}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
-                  {
-                      var group = builder.MapGroup("{{subject.RoutePrefix}}");
-
-                      Configure(group);
-                      
-                      {{subject.AddApiDocumentation()}}
-                      
-                      return group;
-                  }
-              }
-              """);
-        var groupName = subject.Namespace is null ? $"{subject.TypeName}" : $"{subject.Namespace}.{subject.TypeName}";
-        context.AddSource($"Group.{groupName}.g.cs", groupCode.ToString());
+            
+        builder
+            .Append("public partial class ").Append(subject.TypeName).Append(": global::").Append(subject.Namespace).Append(".").Append(subject.TypeName).Append(".").Append("I").Append(subject.TypeName).Append("Configure, global::").AppendLine(GroupMarkerInterface.TypeFullName)
+            .Append("""
+                    {
+                        public interface I
+                    """)
+            .Append(subject.TypeName).Append("Configure: global::Scribbly.Stencil.").AppendLine(ConfigureMarkerInterface.TypeName)
+            .Append("""
+                        {
+                            void Configure(global::Microsoft.AspNetCore.Routing.RouteGroupBuilder 
+                    """)
+            .Append(builderParameter).AppendLine("Builder);")
+            .Append("""
+                        }
+                        
+                        /// <summary>
+                        /// Maps the endpoint group 
+                    """)
+            .Append(subject.TypeName).Append(" to a endpoint builder with the routing prefix ").Append(subject.TypeName).AppendLine(".")
+            .Append("""
+                        /// </summary>
+                        public global::Microsoft.AspNetCore.Routing.RouteGroupBuilder Map
+                    """)
+            .Append(subject.TypeName).AppendLine("(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)")
+            .Append("""
+                        {
+                            var group = builder.MapGroup("
+                    """)
+            .Append(subject.RoutePrefix).AppendLine("\");")
+            .Append("""
+                    
+                            Configure(group);
+                            
+                    """)
+            .AppendApiDocumentation(subject)
+            .Append("""
+                    
+                            return group;
+                        }
+                    }
+                    """);
+        
     }
     
-    private static void GenerateSimpleGroup(SourceProductionContext context, TargetGroupCaptureContext subject)
+    private static void GenerateSimpleGroup(this StringBuilder builder, TargetGroupCaptureContext subject)
     {
-        var @namespace = subject.Namespace is not null 
-            ? $"namespace {subject.Namespace};"
-            : string.Empty;
+        builder
+            .Append("public partial class ").Append(subject.TypeName).Append(": global::").AppendLine(GroupMarkerInterface.TypeFullName)
+            .Append("""
+                    {
+                        /// <summary>
+                        /// Maps the endpoint group 
+                    """)
+            .Append(subject.TypeName).Append(" to a endpoint builder with the routing prefix ").Append(subject.TypeName).AppendLine(".")
+            .Append("""
+                        /// </summary>
+                        public global::Microsoft.AspNetCore.Routing.RouteGroupBuilder Map
+                    """)
+            .Append(subject.TypeName).AppendLine("(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)")
+            .Append("""
+                        {
+                            var group = builder.MapGroup("
+                    """)
+            .Append(subject.RoutePrefix).AppendLine("\");")
+            .Append("        ").AppendApiDocumentation(subject)
+            .Append("""
 
-        var handlerCode = 
-            $$"""
-
-              // <auto-generated/> @{{DateTime.UtcNow}} @GroupBuilderExecution.cs
-              #nullable enable
-
-              using Scribbly.Stencil;
-
-              using Microsoft.AspNetCore.Builder;
-              using Microsoft.AspNetCore.Http;
-              using Microsoft.AspNetCore.Mvc;
-              using Microsoft.AspNetCore.Routing;
-
-              {{@namespace}}
-
-              public partial class {{subject.TypeName}}: global::{{GroupMarkerInterface.TypeFullName}}
-              {
-                  /// <summary>
-                  /// Maps the endpoint group {{subject.TypeName}} to a endpoint builder with the routing prefix {{subject.TypeName}}.
-                  /// </summary>
-                  public global::Microsoft.AspNetCore.Routing.RouteGroupBuilder Map{{subject.TypeName}}(global::Microsoft.AspNetCore.Routing.IEndpointRouteBuilder builder)
-                  {
-                      var group = builder.MapGroup("{{subject.RoutePrefix}}");
-
-                      {{subject.AddApiDocumentation()}}
-                      
-                      return group;
-                  }
-              }
-              """;
-        var groupName = subject.Namespace is null ? $"{subject.TypeName}" : $"{subject.Namespace}.{subject.TypeName}";
-        context.AddSource($"Group.{groupName}.g.cs", handlerCode);
+                            return group;
+                        }
+                    }
+                    """);
     }
 
-    private static string AddApiDocumentation(this TargetGroupCaptureContext subject)
+    private static StringBuilder CreateFileHeader(TargetGroupCaptureContext subject)
+    {
+        var includeNamespace = subject.Namespace is not null;
+        
+        var sb = FileHeaderFactory
+                .CreateFileHeader()
+                .AppendLine(
+                    """
+
+                    using Microsoft.AspNetCore.Builder;
+                    using Microsoft.AspNetCore.Http;
+                    using Microsoft.AspNetCore.Mvc;
+                    using Microsoft.AspNetCore.Routing;
+
+                    """)
+                .AppendLine()
+                .AppendCondition("namespace ", includeNamespace).AppendCondition(subject.Namespace, includeNamespace).AppendLine(";")
+                .AppendLine();
+
+        return sb;
+    } 
+
+    private static StringBuilder AppendApiDocumentation(this StringBuilder builder, TargetGroupCaptureContext subject)
     {
         return subject switch
         {
-            { Tag: not null} => $"""
-                                 group.WithTags("{subject.Tag}");
-                                 """,
-            _ => string.Empty
+            { Tag: not null} => builder.Append("group.WithTags(\"").Append(subject.Tag).AppendLine("\");"),
+            _ => builder
         };
     }
 }

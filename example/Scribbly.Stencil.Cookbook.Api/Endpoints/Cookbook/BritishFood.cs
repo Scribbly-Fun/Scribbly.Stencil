@@ -8,10 +8,7 @@ public partial class NotAGroup
 
 [EndpointGroup("british-food", "British-Food")]
 [GroupMember<Api>]
-public partial class BritishGroup
-{
-    
-}
+public partial class BritishGroup;
 
 public partial class BritishFood
 {
@@ -28,17 +25,14 @@ public partial class BritishFood
     [PostEndpoint("/{id}", "PostBritishRecipe", "Creates an British Recipe")]
     private static object Post(HttpContext context, string id)
     {
-        return Results.CreatedAtRoute("GetBritishRecipe", new { id = id }, new { Receipe = "Bad Food"  });
+        return Results.CreatedAtRoute("GetBritishRecipe", new { id }, new { Receipe = "Bad Food"  });
     }
     
     [GroupMember<BritishGroup>]
     [PutEndpoint("/{id}", "PutBritishRecipe", "Edits an British Recipe")]
     private static object Put(HttpContext context, string id, EditRequest request)
     {
-        return Results.Ok(request with
-        {
-            Id = "Bad Food" 
-        });
+        return Results.Ok(new EditRequest(Id: "Bad Food"));
     }
     
     [GroupMember<BritishGroup>]
