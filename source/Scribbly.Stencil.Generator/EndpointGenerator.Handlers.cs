@@ -130,6 +130,7 @@ public partial class EndpointGenerator
             }
         }
         
+        capture.MemberOf = methodMembership ?? classMembership;
         capture.ConfigurationMode = (methodConfigurationMode, classConfigurationMode) switch
         {
             (false, false) => TargetMethodCaptureContext.DeclarationMode.Na,
@@ -137,7 +138,6 @@ public partial class EndpointGenerator
             (false, true) => TargetMethodCaptureContext.DeclarationMode.ClassDeclaration,
             (true, true) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
         };
-        capture.MemberOf = methodMembership ?? classMembership;
         capture.GroupMode = (methodMembership, classMembership) switch
         {
             (null, null) => TargetMethodCaptureContext.DeclarationMode.Na,
