@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Scribbly.Stencil.Builder.Context;
 using Scribbly.Stencil.Builder.Factories;
@@ -9,7 +8,7 @@ using Scribbly.Stencil.Groups;
 
 namespace Scribbly.Stencil.Builder;
 
-public class BuilderRegistrarExecution
+public static class BuilderRegistrarExecution
 {
     public static void Generate(
         SourceProductionContext context,
