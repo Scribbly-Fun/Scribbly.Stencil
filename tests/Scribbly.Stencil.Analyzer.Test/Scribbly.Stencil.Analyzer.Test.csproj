@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Scribbly.Stencil.Analyzer.CodeFixes\Scribbly.Stencil.Analyzer.CodeFixes.csproj" />
-    <ProjectReference Include="..\Scribbly.Stencil.Analyzer\Scribbly.Stencil.Analyzer.csproj" />
+    <ProjectReference Include="..\..\source\Scribbly.Stencil.Analyzer.CodeFixes\Scribbly.Stencil.Analyzer.CodeFixes.csproj" />
+    <ProjectReference Include="..\..\source\Scribbly.Stencil.Analyzer\Scribbly.Stencil.Analyzer.csproj" />
   </ItemGroup>
 
 </Project>
