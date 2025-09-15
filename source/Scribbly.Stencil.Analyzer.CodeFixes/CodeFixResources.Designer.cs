@@ -63,9 +63,9 @@ namespace Scribbly.Stencil.Analyzer {
         /// <summary>
         ///   Looks up a localized string similar to Make endpoint handler method static.
         /// </summary>
-        internal static string CodeFixTitle {
+        internal static string EndpointModifier {
             get {
-                return ResourceManager.GetString("CodeFixTitle", resourceCulture);
+                return ResourceManager.GetString("EndpointModifier", resourceCulture);
             }
         }
     }

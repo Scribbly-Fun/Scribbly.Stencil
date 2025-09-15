@@ -1,13 +1,13 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Testing;
+﻿
+using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Scribbly.Stencil.Analyzer.Endpoints;
-using Scribbly.Stencil.Endpoints;
 
-namespace Scribbly.Stencil;
+namespace Scribbly.Stencil.Analyzer.Test;
 
 public static class Verifier
 {
-    public class Test : CSharpCodeFixTest<EndpointMethodModifierAnalyzer, EndpointMethodModifierCodeFix, XUnitVerifier> { }
+    public class Test : CSharpCodeFixTest<MethodModifierAnalyzer, MethodSyntaxProvider, DefaultVerifier> { }
 
     public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
     {

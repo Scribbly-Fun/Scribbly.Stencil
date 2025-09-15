@@ -1,12 +1,21 @@
-﻿namespace Scribbly.Stencil.Endpoints;
+﻿using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+namespace Scribbly.Stencil.Analyzer.Endpoints;
 
 /// <inheritdoc />
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class EndpointMethodModifierAnalyzer : DiagnosticAnalyzer
+public class MethodModifierAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>
+    /// The diagnostics ID used for the stencil error.
+    /// </summary>
     public const string DiagnosticId = "SCRB001";
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new (
         id: DiagnosticId,
         title: "Endpoint attribute on non-static method",
         messageFormat: "Method '{0}' with endpoint attribute must be static",
@@ -45,7 +54,7 @@ public class EndpointMethodModifierAnalyzer : DiagnosticAnalyzer
         {
             foreach (var attr in list.Attributes)
             {
-                var symbol = context.SemanticModel.GetSymbolInfo(attr).Symbol as IMethodSymbol;
+                var symbol = ModelExtensions.GetSymbolInfo(context.SemanticModel, attr).Symbol as IMethodSymbol;
 
                 var attrName = symbol?.ContainingType.Name;
 
@@ -54,7 +63,7 @@ public class EndpointMethodModifierAnalyzer : DiagnosticAnalyzer
                     continue;
                 }
 
-                var methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDecl);
+                var methodSymbol = ModelExtensions.GetDeclaredSymbol(context.SemanticModel, methodDecl);
                 if (methodSymbol is not { IsStatic: false })
                 {
                     continue;
