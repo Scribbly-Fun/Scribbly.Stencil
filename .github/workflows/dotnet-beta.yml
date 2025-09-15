@@ -58,7 +58,6 @@ jobs:
         dotnet build ./source/Scribbly.Stencil.Generator/Scribbly.Stencil.Generator.csproj -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release
         dotnet build ./source/Scribbly.Stencil.Analyzer/Scribbly.Stencil.Analyzer.csproj -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release
         dotnet build ./source/Scribbly.Stencil.Analyzer.CodeFixes/Scribbly.Stencil.Analyzer.CodeFixes.csproj -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release
-
         dotnet pack ./source/Scribbly.Stencil/Scribbly.Stencil.csproj -p:IsPacking='true' -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release -o bin/nugets
 
     - name: Upload NuGet package to GitHub
