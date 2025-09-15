@@ -37,4 +37,6 @@ jobs:
     - name: Pack NuGet Packages
       run: |
         dotnet build ./source/Scribbly.Stencil.Generator/Scribbly.Stencil.Generator.csproj -c Release
+        dotnet build ./source/Scribbly.Stencil.Analyzer/Scribbly.Stencil.Analyzer.csproj -c Release
+        dotnet build ./source/Scribbly.Stencil.Analyzer.CodeFixes/Scribbly.Stencil.Analyzer.CodeFixes.csproj -c Release
         dotnet pack ./source/Scribbly.Stencil/Scribbly.Stencil.csproj -c Release -p:IsPacking=true
