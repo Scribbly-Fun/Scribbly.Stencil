@@ -14,8 +14,12 @@
     <File Path="example/Directory.Build.props" />
   </Folder>
   <Folder Name="/lib/">
+    <Project Path="source/Scribbly.Stencil.Analyzer/Scribbly.Stencil.Analyzer.CodeFixes/Scribbly.Stencil.Analyzer.CodeFixes.csproj" Id="dd9d5c8f-542d-445f-827e-9f41dd172ba3" />
+    <Project Path="source/Scribbly.Stencil.Analyzer/Scribbly.Stencil.Analyzer.Package/Scribbly.Stencil.Analyzer.Package.csproj" Id="f9c4ba0d-896c-44f3-aa74-ba9b1e7fc1ee" />
+    <Project Path="source/Scribbly.Stencil.Analyzer/Scribbly.Stencil.Analyzer.Test/Scribbly.Stencil.Analyzer.Test.csproj" Id="a5728def-c020-4f7f-8725-9a45c6219bec" />
+    <Project Path="source/Scribbly.Stencil.Analyzer/Scribbly.Stencil.Analyzer/Scribbly.Stencil.Analyzer.csproj" Id="b06dab6d-ac0c-4644-8898-e7c1eeb05ca9" />
     <Project Path="source/Scribbly.Stencil/Scribbly.Stencil.csproj" />
-    <Project Path="source\Scribbly.Stencil.Generator\Scribbly.Stencil.Generator.csproj" Type="Classic C#" />
+    <Project Path="source\Scribbly.Stencil.Generator\Scribbly.Stencil.Generator.csproj" />
     <File Path="source/Directory.Build.props" />
   </Folder>
   <Folder Name="/tests/">
