@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -21,6 +21,17 @@
           Pack="true"
           PackagePath="analyzers/dotnet/cs"
           Visible="false" />
+    
+    <None Include="..\Scribbly.Stencil.Analyzer\bin\$(Configuration)\netstandard2.0\Scribbly.Stencil.Analyzer.dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/cs"
+          Visible="false" />
+
+    <None Include="..\Scribbly.Stencil.Analyzer.CodeFixes\bin\$(Configuration)\netstandard2.0\Scribbly.Stencil.Analyzer.CodeFixes.dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/cs"
+          Visible="false" />
+
   </ItemGroup>
 
 </Project>

@@ -14,6 +14,14 @@
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false"
                       PrivateAssets="all" />
+
+    <ProjectReference Include="..\..\source\Scribbly.Stencil.Analyzer\Scribbly.Stencil.Analyzer.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+
+    <ProjectReference Include="..\..\source\Scribbly.Stencil.Analyzer.CodeFixes\Scribbly.Stencil.Analyzer.CodeFixes.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

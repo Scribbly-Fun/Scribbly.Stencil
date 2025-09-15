@@ -24,6 +24,7 @@ A framework for organizing and generating minimal API endpoints.
 3. [🛒 Groups](#Groups)
 4. [💉 Dependency Injection](#💉DependencyInjection)
 5. [🥣 Cookbook](#Cookbook)
+6. [🔬 Analyzers](#Analyzers)
 
 ## Example
 
@@ -388,3 +389,17 @@ public partial class MenuGroup(IOptions<MyOptions> options)
     }
 }
 ```
+
+# 🔬 Analyzers
+
+Scribbly stencil has a few analyzers packaged as well containing usage help and code fixes.
+
+### SCRB0001
+
+Alerts the developer when an endpoint attribute is applied to non-static method.
+
+![scrb0001.gif](./docs/scrb0001_analyzer.gif)
+
+### SCRB0002
+
+Alerts the developer when the an endpoint attribute is using within a non-partial class.

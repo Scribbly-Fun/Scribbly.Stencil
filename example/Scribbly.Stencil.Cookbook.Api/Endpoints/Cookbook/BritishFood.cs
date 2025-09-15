@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Cookbook;
+﻿namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Cookbook;
 
 [EndpointGroup("/food")]
 public partial class NotAGroup
