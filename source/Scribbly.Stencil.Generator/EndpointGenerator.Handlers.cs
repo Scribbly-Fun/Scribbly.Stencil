@@ -9,146 +9,6 @@ namespace Scribbly.Stencil;
 
 public partial class EndpointGenerator
 {
-    private static bool HandlerSyntacticPredicate(SyntaxNode node, CancellationToken cancellation)
-    {
-        if (node is not MethodDeclarationSyntax method)
-            return false;
-
-        return method.AttributeLists
-            .SelectMany(list => list.Attributes)
-            .Any(attr =>
-                attr.Name.ToString().Contains(GetEndpointAttribute.UsageName) ||
-                attr.Name.ToString().Contains(PostEndpointAttribute.UsageName) ||
-                attr.Name.ToString().Contains(PutEndpointAttribute.UsageName) ||
-                attr.Name.ToString().Contains(DeleteEndpointAttribute.UsageName));
-    }
-
-    private static (INamedTypeSymbol symbol, TargetMethodCaptureContext handler)? HandlerSemanticTransform(
-        GeneratorSyntaxContext context, CancellationToken cancellation)
-    {
-        var methodDeclaration = (MethodDeclarationSyntax)context.Node;
-        if (!ValidateHandlerCandidateModifiers(methodDeclaration))
-            return null;
-        var methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDeclaration);
-
-        if (methodSymbol is null)
-            return null;
-        
-        var classDeclaration = Extensions.SyntaxNodeExtensions.GetParent<ClassDeclarationSyntax>(methodDeclaration);
-        if (!ValidateHandlerCandidateModifiers(classDeclaration))
-            return null;
-
-        var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
-        if (classSymbol is null)
-            return null;
-        
-        var methodAttributes = methodSymbol.GetAttributes();
-
-        if (methodAttributes.Length == 0)
-        {
-            return null;
-        }
-        
-        var memberAttributeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName(GroupMemberAttribute.TypeFullName);
-        
-        TargetMethodCaptureContext? capture = null;
-        
-        string? methodMembership = null;
-        string? classMembership = null;
-
-        var methodConfigurationMode = false;
-        var classConfigurationMode = false;
-        
-        
-        foreach (var methodAttribute in methodAttributes)
-        {
-            var attrClass = methodAttribute.AttributeClass;
-            if (attrClass is null)
-            {
-                continue;
-            }
-
-            if (attrClass.ToDisplayString() == GetEndpointAttribute.TypeFullName)
-            {
-                capture = CaptureHttpVerbContext(classSymbol, methodSymbol, methodAttribute, "Get");
-            }
-            if (attrClass.ToDisplayString() == PostEndpointAttribute.TypeFullName)
-            {
-                capture = CaptureHttpVerbContext(classSymbol, methodSymbol, methodAttribute, "Post");
-            }
-            if (attrClass.ToDisplayString() == PutEndpointAttribute.TypeFullName)
-            {
-                capture = CaptureHttpVerbContext(classSymbol, methodSymbol, methodAttribute, "Put");
-            }
-            if (attrClass.ToDisplayString() == DeleteEndpointAttribute.TypeFullName)
-            {
-                capture = CaptureHttpVerbContext(classSymbol, methodSymbol, methodAttribute, "Delete");
-            }
-            
-            if (SymbolEqualityComparer.Default.Equals(attrClass.OriginalDefinition, memberAttributeSymbol) && 
-                attrClass is { TypeArguments.Length: 1 } attrSymbol &&
-                attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
-            {
-                methodMembership = typeArg.ToDisplayString();
-            }
-            
-            if(attrClass.ToDisplayString() == ConfigureAttribute.TypeFullName)
-            {
-                methodConfigurationMode = true;
-            }
-        }
-        
-        if (capture is null)
-        {
-            return null;
-        }
-        
-        var classAttributes = classSymbol.GetAttributes();
-        
-        foreach (var classAttribute in classAttributes)
-        {
-            var attrClass = classAttribute.AttributeClass;
-            if (attrClass is null)
-            {
-                continue;
-            }
-            if(attrClass.ToDisplayString() == EndpointGroupAttribute.TypeFullName)
-            {
-                capture.IsEndpointGroup =  true;
-            }
-            
-            if(attrClass.ToDisplayString() == ConfigureAttribute.TypeFullName) 
-            {
-                classConfigurationMode = true;
-            }
-            
-            if (SymbolEqualityComparer.Default.Equals(attrClass.OriginalDefinition, memberAttributeSymbol) && 
-                attrClass is { TypeArguments.Length: 1 } attrSymbol &&
-                attrSymbol.TypeArguments[0] is INamedTypeSymbol typeArg)
-            {
-                classMembership = typeArg.ToDisplayString();
-            }
-        }
-        
-        capture.MemberOf = methodMembership ?? classMembership;
-        capture.ConfigurationMode = (methodConfigurationMode, classConfigurationMode) switch
-        {
-            (false, false) => TargetMethodCaptureContext.DeclarationMode.Na,
-            (true, false) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
-            (false, true) => TargetMethodCaptureContext.DeclarationMode.ClassDeclaration,
-            (true, true) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
-        };
-        capture.GroupMode = (methodMembership, classMembership) switch
-        {
-            (null, null) => TargetMethodCaptureContext.DeclarationMode.Na,
-            (not null, null) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
-            (null, not null) => TargetMethodCaptureContext.DeclarationMode.ClassDeclaration,
-            (not null, not null) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
-        };
-        
-        return (classSymbol, capture);
-    }
-
     private static bool ValidateHandlerCandidateModifiers(ClassDeclarationSyntax? candidate)
     {
         if (candidate == null)
@@ -174,69 +34,151 @@ public partial class EndpointGenerator
         return true;
     }
     
-    private static (string? route, string? name, string? description) GetAttributeProperties(AttributeData? getEndpointAttr)
+    private static CapturedHandler? CaptureEndpointHandler(GeneratorAttributeSyntaxContext context, string httpVerb)
     {
-        if (getEndpointAttr is null)
+        if (context.TargetSymbol is not IMethodSymbol methodSymbol)
+        {
+            return null;
+        }
+
+        var classSymbol = methodSymbol.ContainingType;
+        if (classSymbol is null)
+        {
+            return null;
+        }
+        
+        if (!ValidateHandlerCandidateModifiers(classSymbol.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax))
+        {
+            return null;
+        } 
+        
+        if (!ValidateHandlerCandidateModifiers(methodSymbol.DeclaringSyntaxReferences.First().GetSyntax() as MethodDeclarationSyntax))
+        {
+            return null;
+        }
+
+        var endpointAttr = context.Attributes.FirstOrDefault();
+        var (httpRoute, name, description) = GetAttributeProperties(endpointAttr);
+
+        string? methodMembership = null;
+        string? classMembership = null;
+        bool methodConfig = false;
+        bool classConfig = false;
+        bool isEndpointGroup = false;
+        
+        foreach (var attr in methodSymbol.GetAttributes())
+        {
+            if (attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName)
+            {
+                methodConfig = true;
+            }
+
+            if (SymbolEqualityComparer.Default.Equals(
+                    attr.AttributeClass?.OriginalDefinition,
+                    context.SemanticModel.Compilation.GetTypeByMetadataName(GroupMemberAttribute.TypeFullName)) &&
+                attr.AttributeClass is { TypeArguments.Length: 1 } symbol &&
+                symbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            {
+                methodMembership = typeArg.ToDisplayString();
+            }
+        }
+
+        // Check class attributes
+        foreach (var attr in classSymbol.GetAttributes())
+        {
+            if (attr.AttributeClass?.ToDisplayString() == EndpointGroupAttribute.TypeFullName)
+                isEndpointGroup = true;
+
+            if (attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName)
+                classConfig = true;
+
+            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition,
+                    context.SemanticModel.Compilation.GetTypeByMetadataName(GroupMemberAttribute.TypeFullName)) &&
+                attr.AttributeClass is { TypeArguments.Length: 1 } symbol &&
+                symbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            {
+                classMembership = typeArg.ToDisplayString();
+            }
+        }
+
+        var ns = classSymbol.ContainingNamespace.IsGlobalNamespace
+            ? string.Empty
+            : classSymbol.ContainingNamespace.ToDisplayString();
+
+        var memberOf = methodMembership ?? classMembership;
+
+        var configurationMode = (methodConfig, classConfig) switch
+        {
+            (false, false) => TargetMethodCaptureContext.DeclarationMode.Na,
+            (true, false) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
+            (false, true) => TargetMethodCaptureContext.DeclarationMode.ClassDeclaration,
+            (true, true) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
+        };
+
+        var groupMode = (methodMembership, classMembership) switch
+        {
+            (null, null) => TargetMethodCaptureContext.DeclarationMode.Na,
+            (not null, null) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
+            (null, not null) => TargetMethodCaptureContext.DeclarationMode.ClassDeclaration,
+            (not null, not null) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
+        };
+
+        return new CapturedHandler(
+            Namespace: ns,
+            ClassName: classSymbol.Name,
+            MethodName: methodSymbol.Name,
+            HttpVerb: httpVerb,
+            Route: httpRoute,
+            Name: name,
+            Description: description,
+            MemberOf: memberOf,
+            IsEndpointGroup: isEndpointGroup,
+            ConfigurationMode: configurationMode,
+            GroupMode: groupMode
+        );
+    }
+    
+    private static (string? route, string? name, string? description) GetAttributeProperties(AttributeData? endpointAttr)
+    {
+        if (endpointAttr is null)
         {
             return (null, null, null);
         }
         return (
-            getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString(),
-            getEndpointAttr.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString(),
-            getEndpointAttr.ConstructorArguments.ElementAtOrDefault(2).Value?.ToString());
+            endpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString(),
+            endpointAttr.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString(),
+            endpointAttr.ConstructorArguments.ElementAtOrDefault(2).Value?.ToString());
     }
-
-    private static TargetMethodCaptureContext CaptureHttpVerbContext(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol, AttributeData getEndpointAttr, string verb)
-    {
-        var (httpRoute, name, description) = GetAttributeProperties(getEndpointAttr);
-        var methodName = methodSymbol.Name;
-
-        return new TargetMethodCaptureContext(
-            classSymbol.ContainingNamespace.ToDisplayString(),
-            classSymbol.Name,
-            methodName,
-            verb,
-            httpRoute,
-            name,
-            description);
-    }
-
+    
     /// <summary>
-    /// Creates the partial class capture from the provided type, method, and args
+    /// Evaluates the captured handlers data and creates a new Target Method Context containing all data required to
+    /// used to serialize and generate the handlers and all mapping extensions. 
     /// </summary>
-    private static TargetMethodCaptureContext TransformHandlerType((
-        INamedTypeSymbol symbol,
-        TargetMethodCaptureContext metadata) type)
+    private static TargetMethodCaptureContext TransformHandlerType(CapturedHandler captured)
     {
-        var @namespace = type.symbol.ContainingNamespace.IsGlobalNamespace
-            ? null
-            : type.symbol.ContainingNamespace.ToDisplayString();
-
-        var name = type.symbol.Name;
-
-        var memberOf = type.metadata.IsEndpointGroup
-            ? $"{@namespace}.{name}"
-            : type.metadata.MemberOf;
+        var memberOf = captured.IsEndpointGroup
+            ? $"{captured.Namespace}.{captured.ClassName}"
+            : captured.MemberOf;
 
         var configurationMode =
-            type.metadata.ConfigurationMode == TargetMethodCaptureContext.DeclarationMode.ClassDeclaration &&
-            type.metadata.IsEndpointGroup
+            captured.ConfigurationMode == TargetMethodCaptureContext.DeclarationMode.ClassDeclaration &&
+            captured.IsEndpointGroup
                 ? TargetMethodCaptureContext.DeclarationMode.Na
-                : type.metadata.ConfigurationMode;
-        
+                : captured.ConfigurationMode;
+
         return new TargetMethodCaptureContext(
-            @namespace,
-            name,
-            type.metadata.MethodName,
-            type.metadata.HttpMethod,
-            type.metadata.HttpRoute,
-            type.metadata.Name,
-            type.metadata.Description,
+            captured.Namespace,
+            captured.ClassName,
+            captured.MethodName,
+            captured.HttpVerb,
+            captured.Route,
+            captured.Name,
+            captured.Description,
             memberOf,
             configurationMode,
-            type.metadata.IsEndpointGroup 
-                ? TargetMethodCaptureContext.DeclarationMode.ClassDeclaration 
-                : type.metadata.GroupMode,
-            type.metadata.IsEndpointGroup);
+            captured.IsEndpointGroup
+                ? TargetMethodCaptureContext.DeclarationMode.ClassDeclaration
+                : captured.GroupMode,
+            captured.IsEndpointGroup);
     }
 }

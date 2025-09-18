@@ -26,7 +26,7 @@ public partial class EndpointGenerator : IIncrementalGenerator
         IncrementalValueProvider<ImmutableArray<CapturedHandler>> getHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
                 GetEndpointAttribute.TypeFullName,
                 static (node, _) => node is MethodDeclarationSyntax method && ValidateHandlerCandidateModifiers(method),
-                static (ctx, ct) => Capture(ctx, "Get"))
+                static (ctx, ct) => CaptureEndpointHandler(ctx, "Get"))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
             .WithComparer(CapturedHandlerComparer.Instance)
@@ -35,7 +35,7 @@ public partial class EndpointGenerator : IIncrementalGenerator
         IncrementalValueProvider<ImmutableArray<CapturedHandler>> postHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
                 PostEndpointAttribute.TypeFullName,
                 static (node, _) => node is MethodDeclarationSyntax,
-                static (ctx, ct) => Capture(ctx, "Post"))
+                static (ctx, ct) => CaptureEndpointHandler(ctx, "Post"))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
             .WithComparer(CapturedHandlerComparer.Instance)
@@ -44,7 +44,7 @@ public partial class EndpointGenerator : IIncrementalGenerator
         IncrementalValueProvider<ImmutableArray<CapturedHandler>> putHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
                 PutEndpointAttribute.TypeFullName,
                 static (node, _) => node is MethodDeclarationSyntax,
-                static (ctx, ct) => Capture(ctx, "Put"))
+                static (ctx, ct) => CaptureEndpointHandler(ctx, "Put"))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
             .WithComparer(CapturedHandlerComparer.Instance)
@@ -53,7 +53,7 @@ public partial class EndpointGenerator : IIncrementalGenerator
         IncrementalValueProvider<ImmutableArray<CapturedHandler>> deleteHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
                 DeleteEndpointAttribute.TypeFullName,
                 static (node, _) => node is MethodDeclarationSyntax,
-                static (ctx, ct) => Capture(ctx, "Delete"))
+                static (ctx, ct) => CaptureEndpointHandler(ctx, "Delete"))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
             .WithComparer(CapturedHandlerComparer.Instance)
@@ -89,7 +89,7 @@ public partial class EndpointGenerator : IIncrementalGenerator
                     builder.AddRange(deletes);
                     return builder.MoveToImmutable();
                 })
-            .Select(static (captured, _) => TransformHandlerType2(captured!));
+            .Select(static (captured, _) => TransformHandlerType(captured!));
 
         IncrementalValuesProvider<TargetGroupCaptureContext> routeGroupProvider = context.SyntaxProvider
             .CreateSyntaxProvider(GroupSyntacticPredicate, GroupSemanticTransform)
@@ -145,153 +145,6 @@ public partial class EndpointGenerator : IIncrementalGenerator
         var scopeMapping = new StringBuilder().CreateServiceScopeMapping();
         context.AddSource($"Registrar.Scribbly.Stencil.ServiceExtensions.g.cs", registrar.ToString());
         context.AddSource($"Registrar.Scribbly.Stencil.ScopeExtensions.g.cs", scopeMapping.ToString());
-    }
-
-    private static CapturedHandler? Capture(GeneratorAttributeSyntaxContext context, string httpVerb)
-    {
-        if (context.TargetSymbol is not IMethodSymbol methodSymbol)
-            return null;
-
-        var classSymbol = methodSymbol.ContainingType;
-        if (classSymbol is null)
-            return null;
-
-        // Enforce candidate rules
-        if (!ValidateHandlerCandidateModifiers(classSymbol.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax))
-            return null;
-        if (!ValidateHandlerCandidateModifiers(methodSymbol.DeclaringSyntaxReferences.First().GetSyntax() as MethodDeclarationSyntax))
-            return null;
-
-        // Extract info from the endpoint attribute
-        var endpointAttr = context.Attributes.FirstOrDefault();
-        var (httpRoute, name, description) = GetAttributeProperties(endpointAttr);
-
-        // Membership/group flags
-        string? methodMembership = null;
-        string? classMembership = null;
-        bool methodConfig = false;
-        bool classConfig = false;
-        bool isEndpointGroup = false;
-
-        // Check method attributes
-        foreach (var attr in methodSymbol.GetAttributes())
-        {
-            if (attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName)
-                methodConfig = true;
-
-            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition,
-                    context.SemanticModel.Compilation.GetTypeByMetadataName(GroupMemberAttribute.TypeFullName)) &&
-                attr.AttributeClass is { TypeArguments.Length: 1 } symbol &&
-                symbol.TypeArguments[0] is INamedTypeSymbol typeArg)
-            {
-                methodMembership = typeArg.ToDisplayString();
-            }
-        }
-
-        // Check class attributes
-        foreach (var attr in classSymbol.GetAttributes())
-        {
-            if (attr.AttributeClass?.ToDisplayString() == EndpointGroupAttribute.TypeFullName)
-                isEndpointGroup = true;
-
-            if (attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName)
-                classConfig = true;
-
-            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition,
-                    context.SemanticModel.Compilation.GetTypeByMetadataName(GroupMemberAttribute.TypeFullName)) &&
-                attr.AttributeClass is { TypeArguments.Length: 1 } symbol &&
-                symbol.TypeArguments[0] is INamedTypeSymbol typeArg)
-            {
-                classMembership = typeArg.ToDisplayString();
-            }
-        }
-
-        var ns = classSymbol.ContainingNamespace.IsGlobalNamespace
-            ? string.Empty
-            : classSymbol.ContainingNamespace.ToDisplayString();
-
-        var memberOf = methodMembership ?? classMembership;
-
-        var configurationMode = (methodConfig, classConfig) switch
-        {
-            (false, false) => TargetMethodCaptureContext.DeclarationMode.Na,
-            (true, false) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
-            (false, true) => TargetMethodCaptureContext.DeclarationMode.ClassDeclaration,
-            (true, true) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
-        };
-
-        var groupMode = (methodMembership, classMembership) switch
-        {
-            (null, null) => TargetMethodCaptureContext.DeclarationMode.Na,
-            (not null, null) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
-            (null, not null) => TargetMethodCaptureContext.DeclarationMode.ClassDeclaration,
-            (not null, not null) => TargetMethodCaptureContext.DeclarationMode.MethodDeclaration,
-        };
-
-        return new CapturedHandler(
-            Namespace: ns,
-            ClassName: classSymbol.Name,
-            MethodName: methodSymbol.Name,
-            HttpVerb: httpVerb,
-            Route: httpRoute,
-            Name: name,
-            Description: description,
-            MemberOf: memberOf,
-            IsEndpointGroup: isEndpointGroup,
-            ConfigurationMode: configurationMode,
-            GroupMode: groupMode
-        );
-    }
-
-    private static TargetMethodCaptureContext TransformHandlerType2(CapturedHandler captured)
-    {
-        var memberOf = captured.IsEndpointGroup
-            ? $"{captured.Namespace}.{captured.ClassName}"
-            : captured.MemberOf;
-
-        var configurationMode =
-            captured.ConfigurationMode == TargetMethodCaptureContext.DeclarationMode.ClassDeclaration &&
-            captured.IsEndpointGroup
-                ? TargetMethodCaptureContext.DeclarationMode.Na
-                : captured.ConfigurationMode;
-
-        return new TargetMethodCaptureContext(
-            captured.Namespace,
-            captured.ClassName,
-            captured.MethodName,
-            captured.HttpVerb,
-            captured.Route,
-            captured.Name,
-            captured.Description,
-            memberOf,
-            configurationMode,
-            captured.IsEndpointGroup
-                ? TargetMethodCaptureContext.DeclarationMode.ClassDeclaration
-                : captured.GroupMode,
-            captured.IsEndpointGroup);
-    }
-
-    private static void Execute(SourceProductionContext context, TargetMethodCaptureContext target)
-    {
-        // This is where you generate code. You already have all the info you need.
-        // Example: simple diagnostic/logging for now
-        var hintName = $"{target.TypeName}_{target.MethodName}_Endpoint.g.cs";
-
-        var source = $$"""
-                       // <auto-generated />
-                       namespace {{target.Namespace}}
-                       {
-                           public static partial class {{target.TypeName}}_Generated
-                           {
-                               public static void {{target.MethodName}}_Info()
-                               {
-                                   System.Console.WriteLine("Endpoint: [{{target.MethodName}}] {{target.HttpRoute}}");
-                               }
-                           }
-                       }
-                       """;
-
-        context.AddSource(hintName, source);
     }
 }
 
