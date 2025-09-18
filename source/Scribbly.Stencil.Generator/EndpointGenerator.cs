@@ -16,8 +16,6 @@ namespace Scribbly.Stencil;
 [Generator(LanguageNames.CSharp)]
 public partial class EndpointGenerator : IIncrementalGenerator
 {
-    
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // ----------------------> Registered Initialization Types
@@ -26,37 +24,33 @@ public partial class EndpointGenerator : IIncrementalGenerator
         IncrementalValueProvider<ImmutableArray<CapturedHandler>> getHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
                 GetEndpointAttribute.TypeFullName,
                 static (node, _) => node is MethodDeclarationSyntax method && ValidateHandlerCandidateModifiers(method),
-                static (ctx, ct) => CaptureEndpointHandler(ctx, "Get"))
+                static (ctx, ct) => CaptureEndpointHandler(ctx, "Get", ct))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
-            .WithComparer(CapturedHandlerComparer.Instance)
             .Collect();
 
         IncrementalValueProvider<ImmutableArray<CapturedHandler>> postHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
                 PostEndpointAttribute.TypeFullName,
                 static (node, _) => node is MethodDeclarationSyntax,
-                static (ctx, ct) => CaptureEndpointHandler(ctx, "Post"))
+                static (ctx, ct) => CaptureEndpointHandler(ctx, "Post", ct))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
-            .WithComparer(CapturedHandlerComparer.Instance)
             .Collect();
         
         IncrementalValueProvider<ImmutableArray<CapturedHandler>> putHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
                 PutEndpointAttribute.TypeFullName,
                 static (node, _) => node is MethodDeclarationSyntax,
-                static (ctx, ct) => CaptureEndpointHandler(ctx, "Put"))
+                static (ctx, ct) => CaptureEndpointHandler(ctx, "Put", ct))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
-            .WithComparer(CapturedHandlerComparer.Instance)
             .Collect();
         
         IncrementalValueProvider<ImmutableArray<CapturedHandler>> deleteHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
                 DeleteEndpointAttribute.TypeFullName,
                 static (node, _) => node is MethodDeclarationSyntax,
-                static (ctx, ct) => CaptureEndpointHandler(ctx, "Delete"))
+                static (ctx, ct) => CaptureEndpointHandler(ctx, "Delete", ct))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
-            .WithComparer(CapturedHandlerComparer.Instance)
             .Collect();
         
         var combinedEndpointArrays = getHandlers
