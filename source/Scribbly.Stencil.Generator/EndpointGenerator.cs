@@ -7,7 +7,6 @@ using Scribbly.Stencil.Builder.Context;
 using Scribbly.Stencil.Builder.Factories;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Groups;
-using Scribbly.Stencil.Types.Attributes;
 using System.Collections.Immutable;
 using System.Text;
 
@@ -75,11 +74,6 @@ public partial class EndpointGenerator : IIncrementalGenerator
                         return ImmutableArray<CapturedHandler>.Empty;
                     }
                     
-                    if (gets.IsEmpty && posts.IsEmpty)
-                    {
-                        return ImmutableArray<CapturedHandler>.Empty;
-                    }
-        
                     var builder = ImmutableArray.CreateBuilder<CapturedHandler>(total);
                     builder.AddRange(gets);
                     builder.AddRange(posts);
@@ -95,8 +89,7 @@ public partial class EndpointGenerator : IIncrementalGenerator
                 GroupSyntacticPredicate,
                 GroupAttributeTransform)
             .Where(static g => g is not null)
-            .Select(static (g, _) => TransformGroupType(g!))
-            .WithComparer(TargetGroupCaptureContextComparer.Instance);
+            .Select(TransformGroupType);
         
         IncrementalValueProvider<BuilderCaptureContext?> stencilBuilderProvider = context.SyntaxProvider
             .CreateSyntaxProvider(BuilderInvocationSyntacticPredicate, BuilderInvocationSemanticTransform)
