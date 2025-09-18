@@ -64,7 +64,7 @@ public class MethodModifierAnalyzer : DiagnosticAnalyzer
                 }
 
                 var methodSymbol = ModelExtensions.GetDeclaredSymbol(context.SemanticModel, methodDecl);
-                if (methodSymbol is not { IsStatic: false })
+                if (methodSymbol is null)
                 {
                     continue;
                 }
