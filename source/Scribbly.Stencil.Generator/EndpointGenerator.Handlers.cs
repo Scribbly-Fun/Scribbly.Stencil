@@ -174,9 +174,12 @@ public partial class EndpointGenerator
         return true;
     }
     
-    private static (string? route, string? name, string? description) GetAttributeProperties(
-        AttributeData getEndpointAttr)
+    private static (string? route, string? name, string? description) GetAttributeProperties(AttributeData? getEndpointAttr)
     {
+        if (getEndpointAttr is null)
+        {
+            return (null, null, null);
+        }
         return (
             getEndpointAttr.ConstructorArguments.ElementAtOrDefault(0).Value?.ToString(),
             getEndpointAttr.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString(),
