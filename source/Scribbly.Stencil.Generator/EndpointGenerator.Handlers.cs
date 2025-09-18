@@ -2,8 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Scribbly.Stencil.Endpoints;
-using Scribbly.Stencil.Groups;
-using Scribbly.Stencil.Types.Attributes;
+using Scribbly.Stencil.Extensions;
 
 namespace Scribbly.Stencil;
 
@@ -34,8 +33,10 @@ public partial class EndpointGenerator
         return true;
     }
     
-    private static CapturedHandler? CaptureEndpointHandler(GeneratorAttributeSyntaxContext context, string httpVerb)
+    private static CapturedHandler? CaptureEndpointHandler(GeneratorAttributeSyntaxContext context, string httpVerb, CancellationToken cancellation)
     {
+        cancellation.ThrowIfCancellationRequested();
+        
         if (context.TargetSymbol is not IMethodSymbol methodSymbol)
         {
             return null;
@@ -66,38 +67,40 @@ public partial class EndpointGenerator
         bool classConfig = false;
         bool isEndpointGroup = false;
         
+        // --------------------------------------------------------------> Method Attributes
         foreach (var attr in methodSymbol.GetAttributes())
         {
-            if (attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName)
+            cancellation.ThrowIfCancellationRequested();
+            
+            if (attr.AttributeClass.IsConfigurationAttribute())
             {
                 methodConfig = true;
             }
-
-            if (SymbolEqualityComparer.Default.Equals(
-                    attr.AttributeClass?.OriginalDefinition,
-                    context.SemanticModel.Compilation.GetTypeByMetadataName(GroupMemberAttribute.TypeFullName)) &&
-                attr.AttributeClass is { TypeArguments.Length: 1 } symbol &&
-                symbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            
+            if (attr.AttributeClass.IsGroupMemberAttribute(out var genericGroupArg))
             {
-                methodMembership = typeArg.ToDisplayString();
+                methodMembership = genericGroupArg!.ToDisplayString();
             }
         }
 
-        // Check class attributes
+        // --------------------------------------------------------------> Class Attributes
         foreach (var attr in classSymbol.GetAttributes())
         {
-            if (attr.AttributeClass?.ToDisplayString() == EndpointGroupAttribute.TypeFullName)
-                isEndpointGroup = true;
+            cancellation.ThrowIfCancellationRequested();
 
-            if (attr.AttributeClass?.ToDisplayString() == ConfigureAttribute.TypeFullName)
-                classConfig = true;
-
-            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition,
-                    context.SemanticModel.Compilation.GetTypeByMetadataName(GroupMemberAttribute.TypeFullName)) &&
-                attr.AttributeClass is { TypeArguments.Length: 1 } symbol &&
-                symbol.TypeArguments[0] is INamedTypeSymbol typeArg)
+            if (attr.AttributeClass.IsEndpointGroupAttribute())
             {
-                classMembership = typeArg.ToDisplayString();
+                isEndpointGroup = true;
+            }
+            
+            if (attr.AttributeClass.IsConfigurationAttribute())
+            {
+                classConfig = true;
+            }
+
+            if (attr.AttributeClass.IsGroupMemberAttribute(out var genericGroupArg))
+            {
+                classMembership = genericGroupArg!.ToDisplayString();
             }
         }
 
