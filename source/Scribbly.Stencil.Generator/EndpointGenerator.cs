@@ -7,7 +7,6 @@ using Scribbly.Stencil.Builder.Context;
 using Scribbly.Stencil.Builder.Factories;
 using Scribbly.Stencil.Endpoints;
 using Scribbly.Stencil.Groups;
-using Scribbly.Stencil.Types.Attributes;
 using System.Collections.Immutable;
 using System.Text;
 
@@ -21,7 +20,8 @@ public partial class EndpointGenerator : IIncrementalGenerator
         // ----------------------> Registered Initialization Types
         context.RegisterPostInitializationOutput(PostInitializationCallback);
         
-        IncrementalValueProvider<ImmutableArray<CapturedHandler>> getHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
+        IncrementalValueProvider<ImmutableArray<CapturedHandler>> getHandlers = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
                 GetEndpointAttribute.TypeFullName,
                 static (node, _) => node is MethodDeclarationSyntax method && ValidateHandlerCandidateModifiers(method),
                 static (ctx, ct) => CaptureEndpointHandler(ctx, "Get", ct))
@@ -29,25 +29,28 @@ public partial class EndpointGenerator : IIncrementalGenerator
             .Select(static (h, _) => h!)
             .Collect();
 
-        IncrementalValueProvider<ImmutableArray<CapturedHandler>> postHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
+        IncrementalValueProvider<ImmutableArray<CapturedHandler>> postHandlers = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
                 PostEndpointAttribute.TypeFullName,
-                static (node, _) => node is MethodDeclarationSyntax,
+                static (node, _) => node is MethodDeclarationSyntax method && ValidateHandlerCandidateModifiers(method),
                 static (ctx, ct) => CaptureEndpointHandler(ctx, "Post", ct))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
             .Collect();
         
-        IncrementalValueProvider<ImmutableArray<CapturedHandler>> putHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
+        IncrementalValueProvider<ImmutableArray<CapturedHandler>> putHandlers = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
                 PutEndpointAttribute.TypeFullName,
-                static (node, _) => node is MethodDeclarationSyntax,
+                static (node, _) => node is MethodDeclarationSyntax method && ValidateHandlerCandidateModifiers(method),
                 static (ctx, ct) => CaptureEndpointHandler(ctx, "Put", ct))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
             .Collect();
         
-        IncrementalValueProvider<ImmutableArray<CapturedHandler>> deleteHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
+        IncrementalValueProvider<ImmutableArray<CapturedHandler>> deleteHandlers = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
                 DeleteEndpointAttribute.TypeFullName,
-                static (node, _) => node is MethodDeclarationSyntax,
+                static (node, _) => node is MethodDeclarationSyntax method && ValidateHandlerCandidateModifiers(method),
                 static (ctx, ct) => CaptureEndpointHandler(ctx, "Delete", ct))
             .Where(static h => h is not null)
             .Select(static (h, _) => h!)
@@ -71,11 +74,6 @@ public partial class EndpointGenerator : IIncrementalGenerator
                         return ImmutableArray<CapturedHandler>.Empty;
                     }
                     
-                    if (gets.IsEmpty && posts.IsEmpty)
-                    {
-                        return ImmutableArray<CapturedHandler>.Empty;
-                    }
-        
                     var builder = ImmutableArray.CreateBuilder<CapturedHandler>(total);
                     builder.AddRange(gets);
                     builder.AddRange(posts);
@@ -86,11 +84,13 @@ public partial class EndpointGenerator : IIncrementalGenerator
             .Select(static (captured, _) => TransformHandlerType(captured!));
 
         IncrementalValuesProvider<TargetGroupCaptureContext> routeGroupProvider = context.SyntaxProvider
-            .CreateSyntaxProvider(GroupSyntacticPredicate, GroupSemanticTransform)
-            .Where(static type => type.HasValue)
-            .Select(static (type, _) => TransformGroupType(type!.Value))
-            .WithComparer(TargetGroupCaptureContextComparer.Instance);
-
+            .ForAttributeWithMetadataName(
+                EndpointGroupAttribute.TypeFullName,
+                GroupSyntacticPredicate,
+                GroupAttributeTransform)
+            .Where(static g => g is not null)
+            .Select(TransformGroupType);
+        
         IncrementalValueProvider<BuilderCaptureContext?> stencilBuilderProvider = context.SyntaxProvider
             .CreateSyntaxProvider(BuilderInvocationSyntacticPredicate, BuilderInvocationSemanticTransform)
             .Where(static type => type.HasValue)
