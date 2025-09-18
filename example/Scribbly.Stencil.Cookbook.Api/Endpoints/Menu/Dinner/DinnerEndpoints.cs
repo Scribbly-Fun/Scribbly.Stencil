@@ -7,6 +7,7 @@ namespace Scribbly.Stencil.Cookbook.ApiService.Endpoints.Menu.Dinner;
 public partial class DinnerEndpoints
 {
     [GetEndpoint("/{id}", "Gets Dinner", "Queries a new Dinner Item")]
+    [Configure]
     private static IResult GetDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return Results.Ok(id);
@@ -22,5 +23,11 @@ public partial class DinnerEndpoints
     private static object PutDinnerMenu(HttpContext context, [FromRoute] string id)
     {
         return new { id = id };
+    }
+
+    /// <inheritdoc />
+    public void ConfigureGetDinnerMenu(RouteHandlerBuilder getDinnerMenuBuilder)
+    {
+        // For Testing...
     }
 }
