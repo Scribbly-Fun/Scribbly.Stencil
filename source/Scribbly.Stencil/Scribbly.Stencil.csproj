@@ -19,29 +19,17 @@
   <ItemGroup Condition="'$(IsPacking)' == 'true'">
     <None Include="..\Scribbly.Stencil.Generator\bin\$(Configuration)\netstandard2.0\Scribbly.Stencil.Generator.dll"
           Pack="true"
-          PackagePath="analyzers/roslyn4.11/cs"
-          Visible="false" />
-    <None Include="..\Scribbly.Stencil.Generator\bin\$(Configuration)\netstandard2.0\Scribbly.Stencil.Generator.dll"
-          Pack="true"
-          PackagePath="analyzers/roslyn4.14/cs"
+          PackagePath="analyzers/dotnet/cs"
           Visible="false" />
     
     <None Include="..\Scribbly.Stencil.Analyzer\bin\$(Configuration)\netstandard2.0\Scribbly.Stencil.Analyzer.dll"
           Pack="true"
-          PackagePath="analyzers/roslyn4.11/cs"
-          Visible="false" />
-    <None Include="..\Scribbly.Stencil.Analyzer\bin\$(Configuration)\netstandard2.0\Scribbly.Stencil.Analyzer.dll"
-          Pack="true"
-          PackagePath="analyzers/roslyn4.14/cs"
+          PackagePath="analyzers/dotnet/cs"
           Visible="false" />
     
     <None Include="..\Scribbly.Stencil.Analyzer.CodeFixes\bin\$(Configuration)\netstandard2.0\Scribbly.Stencil.Analyzer.CodeFixes.dll"
           Pack="true"
-          PackagePath="analyzers/roslyn4.11/cs"
-          Visible="false" />
-    <None Include="..\Scribbly.Stencil.Analyzer.CodeFixes\bin\$(Configuration)\netstandard2.0\Scribbly.Stencil.Analyzer.CodeFixes.dll"
-          Pack="true"
-          PackagePath="analyzers/roslyn4.14/cs"
+          PackagePath="analyzers/dotnet/cs"
           Visible="false" />
 
   </ItemGroup>
