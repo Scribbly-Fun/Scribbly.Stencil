@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 <!--
@@ -26,7 +26,7 @@
           Pack="true"
           PackagePath="analyzers/dotnet/cs"
           Visible="false" />
-
+    
     <None Include="..\Scribbly.Stencil.Analyzer.CodeFixes\bin\$(Configuration)\netstandard2.0\Scribbly.Stencil.Analyzer.CodeFixes.dll"
           Pack="true"
           PackagePath="analyzers/dotnet/cs"
