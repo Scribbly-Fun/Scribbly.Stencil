@@ -1,11 +1,10 @@
 ![scribbly_banner.png](./docs/scribbly_banner.png)
 
 ![GitHub](https://img.shields.io/github/license/Scribbly-Fun/Scribbly.Stencil) 
-![GitHub all releases](https://img.shields.io/github/downloads/Scribbly-Fun/Scribbly.Stencil/total) 
-![Nuget](https://img.shields.io/nuget/dt/Scribbly.Stencil)
-[![GitHub issues](https://img.shields.io/github/issues/Scribbly-Fun/Scribbly.Stencil)](https://github.com/Scribbly-Fun/Scribbly.Stencil/issues)
+[![NuGet version](https://img.shields.io/nuget/v/Scribbly.Stencil?style=flat-square&logo=nuget)](https://www.nuget.org/packages/Scribbly.Stencil)
+[![NuGet prerelease](https://img.shields.io/nuget/vpre/Scribbly.Stencil?style=flat-square&logo=nuget&label=prerelease)](https://www.nuget.org/packages/Scribbly.Stencil)
+[![NuGet downloads](https://img.shields.io/nuget/dt/Scribbly.Stencil?style=flat-square&logo=nuget&label=downloads)](https://www.nuget.org/packages/Scribbly.Stencil)[![GitHub issues](https://img.shields.io/github/issues/Scribbly-Fun/Scribbly.Stencil)](https://github.com/Scribbly-Fun/Scribbly.Stencil/issues)
 ![GitHub Repo stars](https://img.shields.io/github/stars/Scribbly-Fun/Scribbly.Stencil?style=social)
-![GitHub forks](https://img.shields.io/github/forks/Scribbly-Fun/Scribbly.Stencil?style=social)
 ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/Scribbly-Fun/Scribbly.Stencil/main)
 
 # Scribbly Stencil
